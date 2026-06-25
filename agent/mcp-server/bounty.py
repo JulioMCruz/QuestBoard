@@ -1,200 +1,159 @@
 """
 QuestBoard bounty helpers — BountyFactory contract interactions.
+
+ABI (must match contracts/bounty_factory/src/lib.rs exactly):
+  create_bounty(poster: Address, title: String, description: String,
+                amount: i128, token: Address, deadline_hours: u32) -> u64
+  claim_bounty(bounty_id: u64, agent: Address)
+  submit_proof(bounty_id: u64, agent: Address, proof: String)
+  release_payment(bounty_id: u64)
+  refund(bounty_id: u64)
+  get_bounty(bounty_id: u64) -> Option<Bounty>
+  list_by_status(status: BountyStatus) -> Vec<u64>
 """
 
-from stellar_sdk import (
-    Server,
-    Keypair,
-    TransactionBuilder,
-    Network,
-    scval,
-    Address,
+import os
+
+from stellar_sdk import scval
+
+from soroban_client import invoke, read
+
+# USDC and XLM both use 7 decimals on Stellar.
+TOKEN_DECIMALS = 7
+
+# Token escrowed by create_bounty. Defaults to the native XLM SAC (testnet), which
+# needs no trustline — the simplest token to run end-to-end. Override with a USDC SAC
+# via QUESTBOARD_TOKEN_ID (note: classic-asset SACs require recipient trustlines).
+DEFAULT_TOKEN = os.environ.get(
+    "QUESTBOARD_TOKEN_ID", "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC"
 )
 
-TESTNET_RPC = "https://soroban-testnet.stellar.org"
-TESTNET_PASSPHRASE = "Test SDF Network ; September 2015"
-USDC_TESTNET = "CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3UDAMQA"
+ALL_STATUSES = ["Open", "Claimed", "Submitted", "Released", "Refunded"]
 
 
-def _build_contract_op(contract_id: str, fn: str, params: list):
-    """Build an invokeContractFunction operation."""
-    return TransactionBuilder(
-        address=Address(contract_id),
-    ).append_invoke_contract_function_op(
-        contract=scval.to_address(contract_id),
-        function_name=fn,
-        parameters=params,
-    ).build()
+def _to_base_units(amount: float) -> int:
+    return int(round(float(amount) * (10**TOKEN_DECIMALS)))
 
 
-def list_open_bounties(contract_id: str, status_filter: str, limit: int) -> list:
-    """Call BountyFactory.list_by_status() via Soroban RPC simulate."""
-    if not contract_id:
-        return []
-
-    server = Server(TESTNET_RPC)
-    try:
-        # Placeholder: real impl uses sorobanClient.simulateTransaction
-        # with list_by_status(Open) and then get_bounty for each ID
-        return []
-    except Exception as e:
-        return [{"error": str(e)}]
+def _addr_str(v):
+    if v is None:
+        return None
+    a = getattr(v, "address", None)
+    return a if a is not None else (v if isinstance(v, str) else str(v))
 
 
-def create_bounty(contract_id: str, source: str, secret: str, title: str, description: str, amount: float, deadline_hours: int) -> dict:
-    """Build + submit a BountyFactory.create_bounty transaction."""
-    if not contract_id:
-        return {"error": "BOUNTY_FACTORY_ID not set"}
-
-    server = Server(TESTNET_RPC)
-    keypair = Keypair.from_secret(secret)
-    account = server.load_account(source)
-    contract = scval.to_address(contract_id)
-
-    # amount_usdc * 10_000_000 (USDC 7 decimals)
-    amount_i128 = int(amount * 10_000_000)
-    deadline_ts = int(deadline_hours * 3600)
-
-    tx = (
-        TransactionBuilder(account, network_passphrase=TESTNET_PASSPHRASE, base_fee=100_000)
-        .append_invoke_contract_function_op(
-            contract=contract,
-            function_name="create_bounty",
-            parameters=[
-                scval.to_address(source),
-                scval.to_bytes(title.encode()),
-                scval.to_bytes(description.encode()),
-                scval.to_address(USDC_TESTNET),
-                scval.to_int128(amount_i128),
-                scval.to_u64(deadline_ts),
-            ],
-        )
-        .set_timeout(30)
-        .build()
-    )
-    tx.sign(keypair)
-    result = server.submit_transaction(tx)
-    if result.get("status") == "ERROR":
-        return {"error": str(result)}
+def _normalize_bounty(d: dict) -> dict:
+    """Turn a raw to_native Bounty struct into a clean, JSON-serializable dict."""
+    if not isinstance(d, dict):
+        return {"raw": str(d)}
+    status = d.get("status")
+    if isinstance(status, (list, tuple)) and status:
+        status = status[0]
     return {
-        "tx_hash": result["hash"],
-        "status": "created",
-        "bounty_id": "TODO_parse_from_events",
+        "id": d.get("id"),
+        "status": status,
+        "poster": _addr_str(d.get("poster")),
+        "agent": _addr_str(d.get("agent")),
+        "title": d.get("title"),
+        "description": d.get("description"),
+        "token": _addr_str(d.get("token")),
+        "amount": str(d.get("amount")),
+        "deadline": d.get("deadline"),
+        "created_at": d.get("created_at"),
+        "submission_proof": d.get("submission_proof"),
     }
 
 
-def claim_bounty(contract_id: str, bounty_id: int, agent: str, secret: str, endpoint: str) -> dict:
-    if not contract_id:
-        return {"error": "BOUNTY_FACTORY_ID not set"}
-
-    server = Server(TESTNET_RPC)
-    keypair = Keypair.from_secret(secret)
-    account = server.load_account(agent)
-    contract = scval.to_address(contract_id)
-
-    tx = (
-        TransactionBuilder(account, network_passphrase=TESTNET_PASSPHRASE, base_fee=100_000)
-        .append_invoke_contract_function_op(
-            contract=contract,
-            function_name="claim_bounty",
-            parameters=[
-                scval.to_u64(bounty_id),
-                scval.to_address(agent),
-            ],
-        )
-        .set_timeout(30)
-        .build()
-    )
-    tx.sign(keypair)
-    result = server.submit_transaction(tx)
-    if result.get("status") == "ERROR":
-        return {"error": str(result)}
-    return {
-        "tx_hash": result["hash"],
-        "status": "claimed",
-        "bounty_id": bounty_id,
-    }
-
-
-def submit_proof(contract_id: str, bounty_id: int, agent: str, secret: str, proof_hash: str, ipfs: str) -> dict:
-    if not contract_id:
-        return {"error": "BOUNTY_FACTORY_ID not set"}
-
-    server = Server(TESTNET_RPC)
-    keypair = Keypair.from_secret(secret)
-    account = server.load_account(agent)
-    contract = scval.to_address(contract_id)
-
-    proof_bytes = proof_hash.encode()
-    ipfs_bytes = ipfs.encode() if ipfs else b""
-
-    tx = (
-        TransactionBuilder(account, network_passphrase=TESTNET_PASSPHRASE, base_fee=100_000)
-        .append_invoke_contract_function_op(
-            contract=contract,
-            function_name="submit_proof",
-            parameters=[
-                scval.to_u64(bounty_id),
-                scval.to_address(agent),
-                scval.to_bytes(proof_bytes),
-            ],
-        )
-        .set_timeout(30)
-        .build()
-    )
-    tx.sign(keypair)
-    result = server.submit_transaction(tx)
-    if result.get("status") == "ERROR":
-        return {"error": str(result)}
-    return {
-        "tx_hash": result["hash"],
-        "status": "submitted",
-        "bounty_id": bounty_id,
-    }
-
-
-def release_payment(contract_id: str, bounty_id: int, caller: str, secret: str) -> dict:
-    if not contract_id:
-        return {"error": "BOUNTY_FACTORY_ID not set"}
-
-    server = Server(TESTNET_RPC)
-    keypair = Keypair.from_secret(secret)
-    account = server.load_account(caller)
-    contract = scval.to_address(contract_id)
-
-    tx = (
-        TransactionBuilder(account, network_passphrase=TESTNET_PASSPHRASE, base_fee=100_000)
-        .append_invoke_contract_function_op(
-            contract=contract,
-            function_name="release_payment",
-            parameters=[
-                scval.to_u64(bounty_id),
-            ],
-        )
-        .set_timeout(30)
-        .build()
-    )
-    tx.sign(keypair)
-    result = server.submit_transaction(tx)
-    if result.get("status") == "ERROR":
-        return {"error": str(result)}
-    return {
-        "tx_hash": result["hash"],
-        "status": "released",
-        "bounty_id": bounty_id,
-    }
+# --------------------------------------------------------------------------- reads
 
 
 def get_bounty_status(contract_id: str, bounty_id: int) -> dict:
-    """Call get_bounty() to check status."""
-    if not contract_id:
-        return {"status": "unknown", "error": "BOUNTY_FACTORY_ID not set"}
+    """Read a single bounty via get_bounty(bounty_id)."""
+    res = read(contract_id, "get_bounty", [scval.to_uint64(int(bounty_id))])
+    if not res["ok"]:
+        return {"status": "error", "error": res["error"]}
+    if res["value"] is None:
+        return {"status": "not_found", "bounty_id": bounty_id}
+    return _normalize_bounty(res["value"])
 
-    server = Server(TESTNET_RPC)
-    contract = scval.to_address(contract_id)
 
-    try:
-        # Placeholder: real impl simulates get_bounty and parses the tuple
-        return {"status": "unknown", "note": "MVP placeholder"}
-    except Exception as e:
-        return {"status": "error", "error": str(e)}
+def list_open_bounties(contract_id: str, status_filter: str, limit: int) -> list:
+    """List bounties via list_by_status() + get_bounty() for each id."""
+    statuses = ALL_STATUSES if status_filter in ("All", "", None) else [status_filter]
+
+    ids: list[int] = []
+    for st in statuses:
+        res = read(contract_id, "list_by_status", [scval.to_enum(st, None)])
+        if not res["ok"]:
+            return [{"error": res["error"], "status_filter": st}]
+        ids.extend(res["value"] or [])
+
+    out = []
+    for bid in ids[: int(limit)]:
+        b = get_bounty_status(contract_id, bid)
+        out.append(b)
+    return out
+
+
+# -------------------------------------------------------------------------- writes
+
+
+def create_bounty(
+    contract_id: str,
+    source: str,
+    secret: str,
+    title: str,
+    description: str,
+    amount: float,
+    deadline_hours: int,
+    token: str | None = None,
+) -> dict:
+    token = token or DEFAULT_TOKEN
+    params = [
+        scval.to_address(source),
+        scval.to_string(title),
+        scval.to_string(description),
+        scval.to_int128(_to_base_units(amount)),
+        scval.to_address(token),
+        scval.to_uint32(int(deadline_hours)),
+    ]
+    res = invoke(contract_id, "create_bounty", params, secret)
+    if not res["ok"]:
+        return {"error": res["error"]}
+    return {"status": "created", "tx_hash": res["tx_hash"], "bounty_id": res["return"]}
+
+
+def claim_bounty(contract_id: str, bounty_id: int, agent: str, secret: str, endpoint: str = "") -> dict:
+    # `endpoint` is not part of the contract ABI (claim_bounty(bounty_id, agent));
+    # it is kept for caller compatibility but not sent on-chain.
+    params = [scval.to_uint64(int(bounty_id)), scval.to_address(agent)]
+    res = invoke(contract_id, "claim_bounty", params, secret)
+    if not res["ok"]:
+        return {"error": res["error"], "bounty_id": bounty_id}
+    return {"status": "claimed", "tx_hash": res["tx_hash"], "bounty_id": bounty_id}
+
+
+def submit_proof(contract_id: str, bounty_id: int, agent: str, secret: str, proof_hash: str, ipfs: str = "") -> dict:
+    proof = f"{proof_hash}|ipfs:{ipfs}" if ipfs else proof_hash
+    params = [scval.to_uint64(int(bounty_id)), scval.to_address(agent), scval.to_string(proof)]
+    res = invoke(contract_id, "submit_proof", params, secret)
+    if not res["ok"]:
+        return {"error": res["error"], "bounty_id": bounty_id}
+    return {"status": "submitted", "tx_hash": res["tx_hash"], "bounty_id": bounty_id}
+
+
+def release_payment(contract_id: str, bounty_id: int, caller: str, secret: str) -> dict:
+    # Only the stored poster is authorized on-chain; `secret` must be the poster's.
+    params = [scval.to_uint64(int(bounty_id))]
+    res = invoke(contract_id, "release_payment", params, secret)
+    if not res["ok"]:
+        return {"error": res["error"], "bounty_id": bounty_id}
+    return {"status": "released", "tx_hash": res["tx_hash"], "bounty_id": bounty_id}
+
+
+def refund(contract_id: str, bounty_id: int, caller: str, secret: str) -> dict:
+    params = [scval.to_uint64(int(bounty_id))]
+    res = invoke(contract_id, "refund", params, secret)
+    if not res["ok"]:
+        return {"error": res["error"], "bounty_id": bounty_id}
+    return {"status": "refunded", "tx_hash": res["tx_hash"], "bounty_id": bounty_id}
