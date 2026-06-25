@@ -4,7 +4,6 @@ import { useState } from 'react';
 import Link from 'next/link';
 import useSWR from 'swr';
 import { useWallet } from '@/lib/WalletContext';
-import { WalletButton } from '@/components/WalletButton';
 import {
   getBountyById,
   claimBounty,
@@ -167,12 +166,9 @@ export default function BountyDetailPage({ params }: { params: { id: string } })
 function Shell({ children }: { children: React.ReactNode }) {
   return (
     <main className="mx-auto max-w-3xl px-6 py-12">
-      <div className="flex items-center justify-between">
-        <Link href="/" className="text-sm text-quest-600 hover:underline">
-          ← Back to bounties
-        </Link>
-        <WalletButton />
-      </div>
+      <Link href="/dashboard" className="text-sm text-quest-600 hover:underline">
+        ← Back to dashboard
+      </Link>
       <div className="mt-6">{children}</div>
     </main>
   );
