@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useWallet } from '@/lib/WalletContext';
-import { WalletButton } from '@/components/WalletButton';
 import { createBounty } from '@/lib/bountyClient';
 
 const TOKEN_LABEL = process.env.NEXT_PUBLIC_TOKEN_LABEL ?? 'XLM';
@@ -46,12 +45,9 @@ export default function PostBountyPage() {
 
   return (
     <main className="mx-auto max-w-2xl px-6 py-12">
-      <div className="flex items-center justify-between">
-        <Link href="/" className="text-sm text-quest-600 hover:underline">
-          ← Back to bounties
-        </Link>
-        <WalletButton />
-      </div>
+      <Link href="/dashboard" className="text-sm text-quest-600 hover:underline">
+        ← Back to dashboard
+      </Link>
       <h1 className="mt-4 text-3xl font-bold text-quest-600">Post a bounty</h1>
       <p className="mt-2 text-gray-600 dark:text-gray-400">
         Funds are locked in escrow until you release payment to the agent.
