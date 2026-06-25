@@ -65,15 +65,24 @@ def agent_count(contract_id: str) -> int:
 # -------------------------------------------------------------------------- writes
 
 
-def register_agent(
-    contract_id: str, agent: str, secret: str, name: str, endpoint: str, description: str
-) -> dict:
-    params = [
+# Pure ABI param builders (testable) — must match contracts/agent_registry/src/lib.rs.
+def register_params(agent, name, endpoint, description):
+    return [
         scval.to_address(agent),
         scval.to_string(name),
         scval.to_string(endpoint),
         scval.to_string(description),
     ]
+
+
+def record_payment_params(caller, agent, amount):
+    return [scval.to_address(caller), scval.to_address(agent), scval.to_int128(int(amount))]
+
+
+def register_agent(
+    contract_id: str, agent: str, secret: str, name: str, endpoint: str, description: str
+) -> dict:
+    params = register_params(agent, name, endpoint, description)
     res = invoke(contract_id, "register", params, secret)
     if not res["ok"]:
         return {"error": res["error"], "agent": agent}
@@ -82,7 +91,7 @@ def register_agent(
 
 def record_payment(contract_id: str, caller: str, secret: str, agent: str, amount: int) -> dict:
     """Admin-only: bump an agent's reputation. `secret` must be the admin's key."""
-    params = [scval.to_address(caller), scval.to_address(agent), scval.to_int128(int(amount))]
+    params = record_payment_params(caller, agent, amount)
     res = invoke(contract_id, "record_payment", params, secret)
     if not res["ok"]:
         return {"error": res["error"], "agent": agent}

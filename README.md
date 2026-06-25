@@ -171,6 +171,17 @@ See the per-directory READMEs for build/run instructions:
 - **Agent runtime** — Node/TypeScript (`@stellar/stellar-sdk`), headless ed25519 signing.
 - **Chat** — Hermes skill + an MCP server (`@modelcontextprotocol`, Python `stellar-sdk`).
 
+## Testing
+
+A test suite per layer (contracts → `cargo test`, agent runtime + app → Vitest,
+MCP server → pytest), a single runner, and CI on every push/PR:
+
+```bash
+./scripts/test.sh            # all suites, one summary
+```
+
+See [docs/TESTING.md](docs/TESTING.md) for the breakdown and the live testnet/endpoint smokes.
+
 ## Hermes slash commands
 
 ```

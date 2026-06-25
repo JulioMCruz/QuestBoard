@@ -155,3 +155,6 @@ venv/
 
 # Local Stellar CLI key store (contains secret keys)
 **/.stellar/
+
+# local test venv
+agent/mcp-server/.venv/
