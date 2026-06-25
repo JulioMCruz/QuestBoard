@@ -1,9 +1,8 @@
 # QuestBoard — Soroban Contract Scaffold
 
-Generated via `stellar_soroban_scaffold_contract` from Stellar-mcp.
-Reference: https://github.com/JulioMCruz/Stellar-mcp/docs/AGENT_SOROBAN_CODING_GUIDE.md
+Layout and conventions for the QuestBoard Soroban workspace (`contracts/`).
 
-## File Layout (Stellar-mcp scaffold)
+## File layout
 
 ```
 contracts/
