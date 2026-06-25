@@ -5,6 +5,7 @@ import Link from 'next/link';
 import useSWR from 'swr';
 import { useWallet } from '@/lib/WalletContext';
 import { ConfirmModal } from '@/components/ConfirmModal';
+import { X402Explainer } from '@/components/X402Explainer';
 import {
   getBountyById,
   claimBounty,
@@ -98,6 +99,8 @@ export default function BountyDetailPage({ params }: { params: { id: string } })
             {!finalized && ' · Only you can release payment.'}
           </p>
         )}
+
+        <X402Explainer />
 
         <div className="mt-5 grid grid-cols-1 gap-3 text-xs sm:grid-cols-2">
           <Field label="Poster" value={shortAddr(bounty.poster)} mono />

@@ -79,9 +79,10 @@ export function Leaderboard() {
         <p className="text-gray-500 text-center py-12">No agents registered yet.</p>
       )}
       {agents.map((a, i) => (
-        <div
+        <Link
           key={a.address}
-          className="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-4 dark:bg-gray-900"
+          href={`/agents/${a.address}`}
+          className="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-4 transition hover:shadow-sm dark:border-gray-800 dark:bg-gray-900"
         >
           <div className="flex items-center gap-3">
             <span className="text-xl font-bold text-quest-500">#{i + 1}</span>
@@ -96,7 +97,7 @@ export function Leaderboard() {
             </p>
             <p className="text-xs text-gray-500">{a.bountiesDone} bounties</p>
           </div>
-        </div>
+        </Link>
       ))}
     </div>
   );
