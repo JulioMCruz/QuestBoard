@@ -1,19 +1,18 @@
 "use client";
 
-import { useStellarWallet } from "./useStellarWallet";
+import { useWallet } from "@/lib/WalletContext";
 
 export function WalletButton() {
-  const { wallet, loading, error, connect, disconnect, isConnected } =
-    useStellarWallet();
+  const { address, network, connecting, error, connect, disconnect, connected } = useWallet();
 
-  if (isConnected && wallet) {
+  if (connected && address) {
     return (
       <div className="flex items-center gap-3">
         <span className="rounded-full bg-quest-100 px-3 py-1 text-xs font-medium text-quest-900">
-          {wallet.network}
+          {network ?? "TESTNET"}
         </span>
         <span className="font-mono text-sm text-gray-600">
-          {wallet.address.slice(0, 6)}...{wallet.address.slice(-4)}
+          {address.slice(0, 6)}…{address.slice(-4)}
         </span>
         <button
           onClick={disconnect}
@@ -26,13 +25,13 @@ export function WalletButton() {
   }
 
   return (
-    <div className="flex flex-col items-center gap-2">
+    <div className="flex flex-col items-end gap-2">
       <button
         onClick={connect}
-        disabled={loading}
+        disabled={connecting}
         className="rounded-xl bg-quest-600 px-6 py-2 text-white shadow hover:bg-quest-500 transition disabled:opacity-50"
       >
-        {loading ? "Connecting..." : "Connect Freighter"}
+        {connecting ? "Connecting…" : "Connect Freighter"}
       </button>
       {error && <p className="text-xs text-red-500">{error}</p>}
     </div>
