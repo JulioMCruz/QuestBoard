@@ -71,9 +71,10 @@ Everything below is implemented and has been exercised end-to-end on Stellar tes
 | Reputation indexer (paid events → on-chain score, idempotent) | `agent/x402-demo/src/indexer.ts` | recorded a completed bounty; re-run records 0 |
 | TypeScript bindings generated from the deployed contracts | `packages/` | used by the app |
 
-**Honest scope:** this runs on **testnet**. The demo sub-contractor agents (B = scraper,
-C = summarizer) return placeholder results — the **payments are real, the work is illustrative**.
-The acceptance policy is a simple proof check; production would run a task-specific validator.
+**Honest scope:** this runs on **testnet**. The sub-contractor agents do real work — B
+fetches and parses live web pages, C does extractive summarization over the result — and the
+payments between them are real x402 settlements. The automated acceptance policy is a simple
+proof check; production would run a task-specific validator (test suite, schema check, LLM judge).
 
 ---
 

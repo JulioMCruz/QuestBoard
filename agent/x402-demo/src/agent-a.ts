@@ -38,7 +38,7 @@ async function main() {
   console.log("[Agent A] → paying Agent B ($0.05) to scrape…");
   const scrapeRes = await fetchWithPayment(`${AGENTS_URL}/scrape?urls=stellar.org,circle.com`);
   if (!scrapeRes.ok) throw new Error(`scrape failed: ${scrapeRes.status} ${await scrapeRes.text()}`);
-  const scraped = (await scrapeRes.json()) as { items: Array<{ url: string; headline: string }> };
+  const scraped = (await scrapeRes.json()) as { items: Array<Record<string, unknown>> };
   console.log(`[Agent A]   ✓ B returned ${scraped.items.length} item(s)`);
 
   // Hop 2: pay Agent C to summarize.
