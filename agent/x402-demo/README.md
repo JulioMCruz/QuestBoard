@@ -13,7 +13,9 @@ sponsored by the facilitator (relayer), so agents only need USDC — no XLM.
 - **`src/agent-a.ts`** — Agent A, the orchestrator/payer. Signs with its own
   keypair (`createEd25519Signer` — the seed never leaves the process), pays B then
   C via `@x402/fetch` `wrapFetchWithPayment` (402 → sign auth entry → retry with
-  `X-PAYMENT`).
+  `X-PAYMENT`). If `BOUNTY_ID` is set, it then **closes the bounty loop**: claims
+  the bounty (if Open) and submits proof to the BountyFactory (`src/bounty.ts`,
+  signed headlessly via `basicNodeSigner`).
 
 ```
 Agent A ──$0.05 USDC──▶ Agent B (/scrape)
@@ -45,6 +47,23 @@ npm run agent-a
 
 Verify settlement by checking USDC balances move: Agent A ↓ ~$0.08, Agent B ↑ $0.05,
 Agent C ↑ $0.03 (on https://stellar.expert/explorer/testnet).
+
+**Verified run (Stellar testnet):** Agent A `200000000 → 199200000` (−0.08 USDC),
+Agent B `0 → 500000` (+0.05), Agent C `0 → 300000` (+0.03). Agent A's XLM was
+untouched — the relayer sponsored all network fees.
+
+## Closing the bounty loop
+
+Set `BOUNTY_ID` to wire the x402 work into a real bounty. After paying B & C, Agent A
+claims the bounty (if Open) and submits proof to the BountyFactory. Full lifecycle
+verified on testnet (bounty #4, 5 XLM escrow):
+
+```
+poster posts bounty ──▶ Agent A claims ──▶ A pays B+C via x402 ──▶ A submits proof
+                                                                        │
+                          poster releases ◀── status: Submitted ◀───────┘
+            Agent A receives 5 XLM (escrow);  proof: x402-research|sha256:b496f…
+```
 
 ## Notes
 
