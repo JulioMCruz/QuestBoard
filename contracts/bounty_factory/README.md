@@ -115,3 +115,12 @@ stellar contract deploy \
 ## License
 
 MIT
+---
+
+## Testnet Deployment
+
+| Network | Contract Address |
+|---|---|
+| Testnet | `CAM3JCDPWDVOPWDT4CH6LJ2ZFNYAKNKMATEG45ZROCOJAHISGYDC4SG6` |
+
+**Explorer:** https://stellar.expert/explorer/testnet/contract/CAM3JCDPWDVOPWDT4CH6LJ2ZFNYAKNKMATEG45ZROCOJAHISGYDC4SG6

@@ -1,0 +1,9 @@
+/tmp/QuestBoard/contracts/target/release/deps/thiserror-1eb45bf89c06241e.d: /opt/perkos-standalone-agents/perkos-brand/home/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-1.0.69/src/lib.rs /opt/perkos-standalone-agents/perkos-brand/home/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-1.0.69/src/aserror.rs /opt/perkos-standalone-agents/perkos-brand/home/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-1.0.69/src/display.rs
+
+/tmp/QuestBoard/contracts/target/release/deps/libthiserror-1eb45bf89c06241e.rlib: /opt/perkos-standalone-agents/perkos-brand/home/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-1.0.69/src/lib.rs /opt/perkos-standalone-agents/perkos-brand/home/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-1.0.69/src/aserror.rs /opt/perkos-standalone-agents/perkos-brand/home/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-1.0.69/src/display.rs
+
+/tmp/QuestBoard/contracts/target/release/deps/libthiserror-1eb45bf89c06241e.rmeta: /opt/perkos-standalone-agents/perkos-brand/home/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-1.0.69/src/lib.rs /opt/perkos-standalone-agents/perkos-brand/home/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-1.0.69/src/aserror.rs /opt/perkos-standalone-agents/perkos-brand/home/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-1.0.69/src/display.rs
+
+/opt/perkos-standalone-agents/perkos-brand/home/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-1.0.69/src/lib.rs:
+/opt/perkos-standalone-agents/perkos-brand/home/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-1.0.69/src/aserror.rs:
+/opt/perkos-standalone-agents/perkos-brand/home/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/thiserror-1.0.69/src/display.rs:

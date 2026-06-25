@@ -1,0 +1,9 @@
+/tmp/QuestBoard/contracts/target/release/deps/soroban_spec_rust-fd0549e51650ba63.d: /opt/perkos-standalone-agents/perkos-brand/home/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/soroban-spec-rust-22.0.11/src/lib.rs /opt/perkos-standalone-agents/perkos-brand/home/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/soroban-spec-rust-22.0.11/src/trait.rs /opt/perkos-standalone-agents/perkos-brand/home/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/soroban-spec-rust-22.0.11/src/types.rs
+
+/tmp/QuestBoard/contracts/target/release/deps/libsoroban_spec_rust-fd0549e51650ba63.rlib: /opt/perkos-standalone-agents/perkos-brand/home/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/soroban-spec-rust-22.0.11/src/lib.rs /opt/perkos-standalone-agents/perkos-brand/home/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/soroban-spec-rust-22.0.11/src/trait.rs /opt/perkos-standalone-agents/perkos-brand/home/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/soroban-spec-rust-22.0.11/src/types.rs
+
+/tmp/QuestBoard/contracts/target/release/deps/libsoroban_spec_rust-fd0549e51650ba63.rmeta: /opt/perkos-standalone-agents/perkos-brand/home/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/soroban-spec-rust-22.0.11/src/lib.rs /opt/perkos-standalone-agents/perkos-brand/home/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/soroban-spec-rust-22.0.11/src/trait.rs /opt/perkos-standalone-agents/perkos-brand/home/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/soroban-spec-rust-22.0.11/src/types.rs
+
+/opt/perkos-standalone-agents/perkos-brand/home/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/soroban-spec-rust-22.0.11/src/lib.rs:
+/opt/perkos-standalone-agents/perkos-brand/home/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/soroban-spec-rust-22.0.11/src/trait.rs:
+/opt/perkos-standalone-agents/perkos-brand/home/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/soroban-spec-rust-22.0.11/src/types.rs:

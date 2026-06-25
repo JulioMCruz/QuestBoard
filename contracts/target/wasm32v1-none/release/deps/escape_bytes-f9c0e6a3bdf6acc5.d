@@ -1,0 +1,9 @@
+/tmp/QuestBoard/contracts/target/wasm32v1-none/release/deps/escape_bytes-f9c0e6a3bdf6acc5.d: /opt/perkos-standalone-agents/perkos-brand/home/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/escape-bytes-0.1.1/src/lib.rs /opt/perkos-standalone-agents/perkos-brand/home/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/escape-bytes-0.1.1/src/escape.rs /opt/perkos-standalone-agents/perkos-brand/home/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/escape-bytes-0.1.1/src/unescape.rs
+
+/tmp/QuestBoard/contracts/target/wasm32v1-none/release/deps/libescape_bytes-f9c0e6a3bdf6acc5.rlib: /opt/perkos-standalone-agents/perkos-brand/home/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/escape-bytes-0.1.1/src/lib.rs /opt/perkos-standalone-agents/perkos-brand/home/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/escape-bytes-0.1.1/src/escape.rs /opt/perkos-standalone-agents/perkos-brand/home/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/escape-bytes-0.1.1/src/unescape.rs
+
+/tmp/QuestBoard/contracts/target/wasm32v1-none/release/deps/libescape_bytes-f9c0e6a3bdf6acc5.rmeta: /opt/perkos-standalone-agents/perkos-brand/home/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/escape-bytes-0.1.1/src/lib.rs /opt/perkos-standalone-agents/perkos-brand/home/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/escape-bytes-0.1.1/src/escape.rs /opt/perkos-standalone-agents/perkos-brand/home/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/escape-bytes-0.1.1/src/unescape.rs
+
+/opt/perkos-standalone-agents/perkos-brand/home/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/escape-bytes-0.1.1/src/lib.rs:
+/opt/perkos-standalone-agents/perkos-brand/home/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/escape-bytes-0.1.1/src/escape.rs:
+/opt/perkos-standalone-agents/perkos-brand/home/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/escape-bytes-0.1.1/src/unescape.rs:

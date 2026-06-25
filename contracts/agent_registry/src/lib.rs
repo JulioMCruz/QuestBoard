@@ -105,7 +105,7 @@ impl AgentRegistry {
         env.storage().instance().set(&DataKey::AllAgents, &all);
 
         env.events().publish(
-            (symbol_short!("agent"), symbol_short!("registered")),
+            (symbol_short!("agent"), symbol_short!("registere")),
             agent,
         );
     }
@@ -192,9 +192,6 @@ impl AgentRegistry {
     }
 
     /// Get the top-N agents by score. Returns a sorted vec of (address, score).
-    ///
-    /// Note: this is O(n log n) and bounded by `limit`. For production with
-    /// thousands of agents, an off-chain indexer is preferred.
     pub fn get_leaderboard(env: Env, limit: u32) -> Vec<(Address, i128)> {
         let all: Vec<Address> = env
             .storage()
@@ -214,29 +211,35 @@ impl AgentRegistry {
             }
         }
 
-        // Selection sort descending by score (fine for small N)
-        let n = entries.len();
+        // Selection sort descending by score
+        let n: u32 = entries.len();
         for i in 0..n {
             let mut best_idx = i;
             for j in (i + 1)..n {
-                let a = entries.get(j).1;
-                let b = entries.get(best_idx).1;
-                if a > b {
-                    best_idx = j;
+                if let Some(a_entry) = entries.get(j) {
+                    if let Some(b_entry) = entries.get(best_idx) {
+                        if a_entry.1 > b_entry.1 {
+                            best_idx = j;
+                        }
+                    }
                 }
             }
             if best_idx != i {
-                let tmp = entries.get(i).clone();
-                let other = entries.get(best_idx).clone();
-                entries.set(i, other);
-                entries.set(best_idx, tmp);
+                if let Some(tmp) = entries.get(i) {
+                    if let Some(other) = entries.get(best_idx) {
+                        entries.set(i, other);
+                        entries.set(best_idx, tmp);
+                    }
+                }
             }
         }
 
         let mut out: Vec<(Address, i128)> = Vec::new(&env);
-        let take = if (limit as usize) > n { n } else { limit as usize };
+        let take: u32 = if limit > n { n } else { limit };
         for i in 0..take {
-            out.push_back(entries.get(i).clone());
+            if let Some(e) = entries.get(i) {
+                out.push_back(e);
+            }
         }
         out
     }

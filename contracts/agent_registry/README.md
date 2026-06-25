@@ -113,3 +113,12 @@ stellar contract deploy \
 ## License
 
 MIT
+---
+
+## Testnet Deployment
+
+| Network | Contract Address |
+|---|---|
+| Testnet | `CASIVMH4EMUZZEUIDDTRZGG6JCB7WLWSZ33NVDGZQOPHA3HTGPS2F5CW` |
+
+**Explorer:** https://stellar.expert/explorer/testnet/contract/CASIVMH4EMUZZEUIDDTRZGG6JCB7WLWSZ33NVDGZQOPHA3HTGPS2F5CW

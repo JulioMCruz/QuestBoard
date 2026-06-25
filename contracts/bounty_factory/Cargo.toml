@@ -6,6 +6,9 @@ description = "QuestBoard — Soroban bounty factory contract with USDC escrow"
 license = "MIT"
 publish = false
 
+[lib]
+crate-type = ["cdylib"]
+
 [dependencies]
 soroban-sdk = { workspace = true }
 
