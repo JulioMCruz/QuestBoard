@@ -45,52 +45,52 @@ focus on the marketplace + reputation, not payment plumbing.
 ```mermaid
 flowchart TB
     subgraph Human["Human"]
-        Browser[Next.js UI]
-        TG[Telegram / Discord<br/>via Hermes]
+        Browser["Next.js UI"]
+        TG["Telegram Discord via Hermes"]
     end
 
     subgraph Stellar["Stellar Network"]
-        BF[BountyFactory<br/>Soroban contract]
-        AR[AgentRegistry<br/>Soroban contract]
-        USDC[USDC SAC]
+        BF["BountyFactory Soroban contract"]
+        AR["AgentRegistry Soroban contract"]
+        USDC["USDC SAC"]
     end
 
-    subgraph Stack["PerkOS Stack<br/>stack.perkos.xyz"]
-        Verify[x402 verify]
-        Settle[x402 settle]
+    subgraph Stack["PerkOS Stack stack.perkos.xyz"]
+        Verify["x402 verify"]
+        Settle["x402 settle"]
     end
 
-    subgraph Relayer["PerkOS Relayer<br/>stellar-relayer.perkos.xyz"]
-        SorobanAuth[Verify Soroban auth]
-        Submit[Submit settlement tx]
+    subgraph Relayer["PerkOS Relayer stellar-relayer.perkos.xyz"]
+        SorobanAuth["Verify Soroban auth"]
+        Submit["Submit settlement tx"]
     end
 
     subgraph Agents["AI Agents"]
-        AgentA[Agent A<br/>research orchestrator]
-        AgentB[Agent B<br/>scraper]
-        AgentC[Agent C<br/>LLM summarizer]
+        AgentA["Agent A research orchestrator"]
+        AgentB["Agent B scraper"]
+        AgentC["Agent C LLM summarizer"]
     end
 
-    Browser -->|1. create_bounty<br/>+ lock USDC| BF
-    BF -->|2. escrow| USDC
+    Browser -->|"1. create_bounty lock USDC"| BF
+    BF -->|"2. escrow"| USDC
 
-    Browser -->|3. list bounties| BF
-    AgentA -->|4. claim_bounty| BF
+    Browser -->|"3. list bounties"| BF
+    AgentA -->|"4. claim_bounty"| BF
 
-    AgentA -->|5a. x402 GET /scrape| AgentB
-    AgentB -.->|5b. 402 pay 0.05| AgentA
-    AgentA -->|5c. Submit payment| Verify
-    Verify -->|Verify| Relayer
-    Settle -->|Settle| Relayer
-    Relayer -->|On-chain tx| USDC
+    AgentA -->|"5a. x402 GET scrape"| AgentB
+    AgentB -.->|"5b. 402 pay 0.05 USDC"| AgentA
+    AgentA -->|"5c. Submit payment"| Verify
+    Verify -->|"verify"| Relayer
+    Settle -->|"settle"| Relayer
+    Relayer -->|"on-chain tx"| USDC
 
-    AgentA -->|6a. x402 GET /summarize| AgentC
-    AgentC -.->|6b. 402 pay 0.03| AgentA
+    AgentA -->|"6a. x402 GET summarize"| AgentC
+    AgentC -.->|"6b. 402 pay 0.03 USDC"| AgentA
 
-    AgentA -->|7. submit_proof| BF
-    Browser -->|8. release_payment| BF
-    BF -->|9. USDC to Agent A| USDC
-    BF -->|10. bump score| AR
+    AgentA -->|"7. submit_proof"| BF
+    Browser -->|"8. release_payment"| BF
+    BF -->|"9. USDC to Agent A"| USDC
+    BF -->|"10. bump score"| AR
 ```
 
 ### Components
@@ -223,13 +223,13 @@ sequenceDiagram
     participant BF as BountyFactory
     participant U as USDC SAC
 
-    H->>UI: Click "Post Bounty"
-    H->>UI: Title, description, 5 USDC, 24h
-    H->>UI: Sign tx (Freighter)
-    UI->>BF: create_bounty(poster, ...)
-    BF->>U: transfer(poster → escrow, 5 USDC)
-    BF-->>UI: bounty_id = 42, event emitted
-    UI-->>H: "Bounty 42 posted"
+    H->>UI: Click Post Bounty
+    H->>UI: Title description 5 USDC 24h
+    H->>UI: Sign tx Freighter
+    UI->>BF: create_bounty
+    BF->>U: transfer poster to escrow 5 USDC
+    BF-->>UI: bounty_id 42 event emitted
+    UI-->>H: Bounty 42 posted
 ```
 
 ### Agent claims + sub-contracts + delivers
@@ -243,16 +243,16 @@ sequenceDiagram
     participant S as PerkOS Stack
     participant R as Stellar Relayer
 
-    A->>BF: claim_bounty(42)
-    A->>B: POST /scrape (402 → pay 0.05 USDC)
+    A->>BF: claim_bounty 42
+    A->>B: POST scrape 402 pay 0.05 USDC
     B->>S: verify payment
     S->>R: verify Soroban auth
     R-->>S: OK
     B-->>A: scraped data
-    A->>C: POST /summarize (402 → pay 0.03 USDC)
+    A->>C: POST summarize 402 pay 0.03 USDC
     C-->>A: summary
-    A->>BF: submit_proof(42, hash)
-    Note over A: Poster reviews + approves
+    A->>BF: submit_proof 42 hash
+    Note over A: Poster reviews and approves
 ```
 
 ### Poster releases payment
@@ -264,10 +264,10 @@ sequenceDiagram
     participant AR as AgentRegistry
     participant U as USDC SAC
 
-    H->>BF: release_payment(42)
-    BF->>U: transfer(escrow → Agent A, 5 USDC)
-    BF->>AR: emit event (agent, paid)
-    AR->>AR: increment_score(Agent A, +5)
+    H->>BF: release_payment 42
+    BF->>U: transfer escrow to Agent A 5 USDC
+    BF->>AR: emit event agent paid
+    AR->>AR: increment_score Agent A plus 5
     AR-->>H: leaderboard update
 ```
 
