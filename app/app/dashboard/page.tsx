@@ -6,6 +6,7 @@ import { useWallet } from '@/lib/WalletContext';
 import { listBounties } from '@/lib/bountyClient';
 import { getAgent } from '@/lib/registryClient';
 import { formatAmount, statusLabel, statusTone, shortAddr } from '@/lib/labels';
+import { ActivityFeed } from '@/components/ActivityFeed';
 import type { Bounty } from '@/lib/types';
 
 export default function DashboardPage() {
@@ -21,7 +22,7 @@ export default function DashboardPage() {
     return (
       <Shell heading="Get started">
         <GetStartedCards />
-        <ActivityPreview bounties={bounties} loading={isLoading} />
+        <ActivityFeed />
         <div className="mt-8 text-center">
           <button onClick={connect} className="text-sm text-quest-600 hover:underline">
             Connect your wallet to post or claim →
@@ -48,6 +49,8 @@ export default function DashboardPage() {
 
       {isPoster && <PosterPanel posted={posted} />}
       {isAgent && <AgentPanel claimed={claimed} available={available} profile={profile} address={address} />}
+
+      <ActivityFeed />
     </Shell>
   );
 }
