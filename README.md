@@ -45,7 +45,7 @@ focus on the marketplace + reputation, not payment plumbing.
 ```mermaid
 flowchart TB
     subgraph Human["Human"]
-        Browser[Next.js App Router UI]
+        Browser[Next.js UI]
         TG[Telegram / Discord<br/>via Hermes]
     end
 
@@ -65,7 +65,7 @@ flowchart TB
         Submit[Submit settlement tx]
     end
 
-    subgraph AgentLayer["agent/"]
+    subgraph Agents["AI Agents"]
         AgentA[Agent A<br/>research orchestrator]
         AgentB[Agent B<br/>scraper]
         AgentC[Agent C<br/>LLM summarizer]
@@ -95,18 +95,20 @@ flowchart TB
 
 ### Components
 
-| Directory | Stack | Purpose |
+| Component | Stack | Purpose |
 |---|---|---|
-| `app/` | Next.js 14 (App Router) + Freighter | Web UI: post bounty, browse, leaderboard |
 | `contracts/bounty_factory/` | Rust + Soroban SDK | Create / claim / submit / release bounties with USDC escrow |
 | `contracts/agent_registry/` | Rust + Soroban SDK | Register agents, bump reputation, leaderboard |
-| `agent/` | Hermes Skill + MCP server + 3 demo agents + facilitator client | Telegram/Discord interface + orchestrator + x402 endpoints |
+| `frontend/` | Next.js 14 + Freighter | Web UI: post bounty, browse, leaderboard |
+| `agents/` | Node.js (3 demo agents) | Agent A orchestrator, Agent B scraper, Agent C summarizer |
+| `plugins/questboard/` | Hermes Skill + MCP server | Telegram/Discord/WhatsApp interface |
+| `facilitator-client/` | Node.js | Wrapper around PerkOS Stack x402 verify/settle |
 
 ---
 
 ## Technical details
 
-### 1. BountyFactory contract (contracts/bounty_factory/src/lib.rs)
+### 1. BountyFactory contract (Soroban Rust)
 
 ```rust
 #[contractimpl]
@@ -146,7 +148,7 @@ impl BountyFactory {
 }
 ```
 
-### 2. AgentRegistry contract (contracts/agent_registry/src/lib.rs)
+### 2. AgentRegistry contract
 
 ```rust
 #[contractimpl]
@@ -171,9 +173,9 @@ impl AgentRegistry {
 }
 ```
 
-### 3. x402 multi-hop agent commerce (agent/facilitator-client + agent-a-research)
+### 3. x402 multi-hop agent commerce (via PerkOS Stack)
 
-Each demo agent is a paid x402 endpoint. Agent A orchestrates:
+Each agent is a paid x402 endpoint. Agent A orchestrates:
 
 ```typescript
 import { createEd25519Signer, getNetworkPassphrase } from '@x402/stellar';
@@ -269,7 +271,7 @@ sequenceDiagram
     AR-->>H: leaderboard update
 ```
 
-### Hermes slash commands (agent/SKILL.md)
+### Hermes slash commands
 
 ```
 /questboard list              # Open bounties
@@ -296,21 +298,21 @@ sequenceDiagram
 ## Build (3-day plan)
 
 ### Day 1 — Setup + customer discovery (parallel with Alicia)
-- Repo scaffolding (app/, contracts/, agent/)
+- Repo scaffolding
 - Soroban CLI + Freighter dev wallet + testnet friendbot
 - 5 customer discovery interviews (Alicia)
 - BountyFactory + AgentRegistry skeleton with empty tests
 
 ### Day 2 — Smart contracts + PerkOS Stack integration + Agent A
-- BountyFactory complete (create / claim / submit / release / refund) in `contracts/`
-- AgentRegistry complete (register / increment_score / leaderboard) in `contracts/`
+- BountyFactory complete (create / claim / submit / release / refund)
+- AgentRegistry complete (register / increment_score / leaderboard)
 - Deploy both to Stellar testnet
-- Agent A orchestrator using PerkOS Stack verify/settle in `agent/agent-a-research/`
-- Agent B (scraper stub) + Agent C (summarizer stub) as x402 endpoints in `agent/`
+- Agent A orchestrator using PerkOS Stack verify/settle
+- Agent B (scraper stub) + Agent C (summarizer stub) as x402 endpoints
 
 ### Day 3 — Polish + demo + submit
-- Frontend complete (bounty board, agent dashboard, leaderboard) in `app/`
-- Demo script end-to-end (`./scripts/demo.sh`)
+- Frontend complete (bounty board, agent dashboard, leaderboard)
+- Demo script end-to-end (`./demo.sh`)
 - Demo video 1-2 min: human posts → 3 agents compete → multi-hop x402 → payout → score++
 - Pitch deck (Stellar House style)
 - Submit on DoraHacks
@@ -324,7 +326,6 @@ sequenceDiagram
 - x402 protocol — github.com/coinbase/x402 + @x402/{core,fetch,stellar}
 - x402 facilitator — PerkOS Stack (stack.perkos.xyz)
 - Wallet — Freighter (@stellar/freighter-api)
-- Next.js App Router — nextjs.org/docs/app
 - Hermes Skill — hermes-agent.nousresearch.com/docs/user-guide/features/skills
 - Agent discovery — ERC-8004 via PerkOS Stack (`/api/erc8004/identity`)
 
@@ -334,43 +335,27 @@ sequenceDiagram
 
 ```
 QuestBoard/
-├── app/                       # Next.js 14 with App Router
-│   ├── app/                   # routes
-│   │   ├── layout.tsx
-│   │   ├── page.tsx           # /  — bounty board
-│   │   ├── bounty/[id]/page.tsx  # /bounty/[id] — detail
-│   │   ├── agents/page.tsx    # /agents — leaderboard
-│   │   └── api/               # route handlers
-│   ├── components/
-│   └── lib/
 ├── contracts/
 │   ├── bounty_factory/        # Soroban contract
 │   │   ├── src/lib.rs
 │   │   └── src/test.rs
 │   └── agent_registry/        # Soroban contract
-│       ├── src/lib.rs
-│       └── src/test.rs
-├── agent/                     # Everything agent-related
-│   ├── SKILL.md               # Hermes skill instructions
-│   ├── questboard_mcp_server.py
-│   ├── agent-a-research/      # Orchestrator (x402 client → PerkOS Stack)
-│   ├── agent-b-scrape/        # x402 scraper endpoint
-│   ├── agent-c-summarize/     # x402 summarizer endpoint
-│   └── facilitator-client/    # Wrapper around PerkOS Stack x402 verify/settle
+├── frontend/                  # Next.js bounty board
+├── agents/
+│   ├── agent-a-research/      # Orchestrator
+│   ├── agent-b-scrape/        # x402 scraper
+│   └── agent-c-summarize/     # x402 summarizer
+├── facilitator-client/        # Wrapper for PerkOS Stack
+├── plugins/
+│   └── questboard/            # Hermes skill
+│       ├── SKILL.md
+│       └── questboard_mcp_server.py
 ├── scripts/
 │   └── demo.sh                # End-to-end demo
 ├── .github/workflows/test.yml
 ├── Cargo.toml
 └── README.md
 ```
-
-### Directory convention
-
-| Directory | Purpose | Stack |
-|---|---|---|
-| `app/` | Next.js App Router (UI + API routes) | TypeScript, React 18 |
-| `contracts/` | Soroban smart contracts | Rust, soroban-sdk |
-| `agent/` | Hermes plugin + demo agents + x402 facilitator client | Python (MCP), Node.js (agents) |
 
 ---
 
