@@ -145,4 +145,10 @@ vite.config.ts.timestamp-*
 target/
 **/test_snapshots/
 contracts/wasm-out/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
 .vite/
