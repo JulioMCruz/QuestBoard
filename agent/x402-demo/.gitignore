@@ -6,3 +6,4 @@ dist/
 
 # never commit a populated .env either
 .env
+.indexer-cursor.json
