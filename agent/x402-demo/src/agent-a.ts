@@ -13,10 +13,12 @@
 
 import { config } from "dotenv";
 config({ path: [".env.local", ".env"] });
+import { createHash } from "node:crypto";
 import { createEd25519Signer } from "@x402/stellar";
 import type { Network } from "@x402/core/types";
 import { ExactStellarScheme } from "@x402/stellar/exact/client";
 import { x402Client, wrapFetchWithPayment } from "@x402/fetch";
+import { getBounty, claimBounty, submitProof } from "./bounty.js";
 
 const NETWORK = (process.env.X402_NETWORK ?? "stellar:testnet") as Network;
 const AGENTS_URL = process.env.AGENTS_URL ?? "http://localhost:4021";
@@ -49,6 +51,25 @@ async function main() {
   if (!sumRes.ok) throw new Error(`summarize failed: ${sumRes.status} ${await sumRes.text()}`);
   const summary = (await sumRes.json()) as { summary: string };
   console.log(`[Agent A]   ✓ C summary: ${summary.summary}`);
+
+  // Close the loop: claim the bounty (if open) and submit proof of the work.
+  const bountyId = process.env.BOUNTY_ID ? Number(process.env.BOUNTY_ID) : NaN;
+  if (!Number.isNaN(bountyId)) {
+    const before = await getBounty(bountyId, AGENT_A_SECRET);
+    console.log(`[Agent A] bounty #${bountyId} status=${before?.status ?? "not found"}`);
+    if (before?.status === "Open") {
+      console.log("[Agent A] → claiming bounty…");
+      await claimBounty(bountyId, AGENT_A_SECRET);
+    }
+    const proof = `x402-research|sha256:${createHash("sha256")
+      .update(summary.summary)
+      .digest("hex")
+      .slice(0, 32)}`;
+    console.log(`[Agent A] → submitting proof: ${proof}`);
+    await submitProof(bountyId, proof, AGENT_A_SECRET);
+    const after = await getBounty(bountyId, AGENT_A_SECRET);
+    console.log(`[Agent A]   ✓ bounty #${bountyId} status=${after?.status} (proof on-chain)`);
+  }
 
   console.log("[Agent A] ✅ multi-hop x402 complete (A→B, A→C settled on Stellar).");
 }
