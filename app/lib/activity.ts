@@ -41,10 +41,67 @@ export interface ActivityItem {
   label: string;
 }
 
-const shortAddr = (a: string) => (a ? `${a.slice(0, 4)}…${a.slice(-4)}` : '');
+export const shortAddr = (a: string) => (a ? `${a.slice(0, 4)}…${a.slice(-4)}` : '');
 const name = (a: string) => AGENT_NAMES[a] ?? shortAddr(a);
-const xlm = (base: unknown) => `${Number(base) / 1e7} XLM`;
-const usdc = (base: unknown) => `${(Number(base) / 1e7).toFixed(2)} USDC`;
+export const formatXlm = (base: unknown) => `${Number(base) / 1e7} XLM`;
+export const formatUsdc = (base: unknown) => `${(Number(base) / 1e7).toFixed(2)} USDC`;
+export const explorerTx = (txHash: string) => EXPLORER_TX + txHash;
+
+export interface ActivityBase {
+  id: string;
+  ledger: number;
+  txHash: string;
+  href: string;
+}
+
+type NameOf = (addr: string) => string;
+
+/**
+ * Pure: turn a decoded BountyFactory/AgentRegistry event (native topics + value)
+ * into a labeled activity item, or null if it's not one we surface. Kept free of
+ * RPC/XDR so it can be unit-tested directly.
+ */
+export function buildLifecycleItem(
+  topics: unknown[],
+  value: any,
+  base: ActivityBase,
+  nameOf: NameOf = name
+): ActivityItem | null {
+  const [a, b] = topics;
+  const v = value;
+  if (a === 'bounty' && b === 'created')
+    return { ...base, kind: 'created', label: `Bounty #${v[0]} posted — ${formatXlm(v[2])} locked` };
+  if (a === 'bounty' && b === 'claimed')
+    return { ...base, kind: 'claimed', label: `Bounty #${v[0]} claimed by ${nameOf(v[1])}` };
+  if (a === 'bounty' && b === 'submitted')
+    return { ...base, kind: 'submitted', label: `Proof submitted for bounty #${v[0]}` };
+  if (a === 'bounty' && b === 'paid')
+    return { ...base, kind: 'paid', label: `Bounty #${v[0]} released — ${formatXlm(v[2])} to ${nameOf(v[1])}` };
+  if (a === 'bounty' && b === 'refunded')
+    return { ...base, kind: 'refunded', label: `Bounty #${v[0]} refunded` };
+  if (a === 'agent' && b === 'register')
+    return { ...base, kind: 'register', label: `Agent registered: ${nameOf(v)}` };
+  if (a === 'agent' && b === 'paid')
+    return { ...base, kind: 'reputation', label: `Reputation +${formatXlm(v[1])} for ${nameOf(v[0])}` };
+  return null;
+}
+
+/** Pure: turn a USDC transfer event into an x402-hop activity item. */
+export function buildTransferItem(
+  topics: unknown[],
+  amount: unknown,
+  fromAddr: string,
+  base: ActivityBase,
+  nameOf: NameOf = name
+): ActivityItem {
+  const to = String(topics[2] ?? '');
+  return { ...base, kind: 'x402', label: `${nameOf(fromAddr)} paid ${nameOf(to)} — ${formatUsdc(amount)} (x402)` };
+}
+
+/** Newest first, capped. */
+export function sortAndCap(items: ActivityItem[], cap = 40): ActivityItem[] {
+  return [...items].sort((x, y) => y.ledger - x.ledger).slice(0, cap);
+}
 
 function topicsOf(e: { topic?: unknown[] }): unknown[] {
   return (e.topic ?? []).map((t) => {
@@ -80,15 +137,10 @@ export async function getActivity(): Promise<ActivityItem[]> {
       });
       for (const e of resp.events as any[]) {
         const t = topicsOf(e);
-        const v = valueOf(e) as any;
-        const base = { id: e.id ?? `${e.txHash}:${t.join()}`, ledger: e.ledger, txHash: e.txHash, href: EXPLORER_TX + e.txHash };
-        if (t[0] === 'bounty' && t[1] === 'created') items.push({ ...base, kind: 'created', label: `Bounty #${v[0]} posted — ${xlm(v[2])} locked` });
-        else if (t[0] === 'bounty' && t[1] === 'claimed') items.push({ ...base, kind: 'claimed', label: `Bounty #${v[0]} claimed by ${name(v[1])}` });
-        else if (t[0] === 'bounty' && t[1] === 'submitted') items.push({ ...base, kind: 'submitted', label: `Proof submitted for bounty #${v[0]}` });
-        else if (t[0] === 'bounty' && t[1] === 'paid') items.push({ ...base, kind: 'paid', label: `Bounty #${v[0]} released — ${xlm(v[2])} to ${name(v[1])}` });
-        else if (t[0] === 'bounty' && t[1] === 'refunded') items.push({ ...base, kind: 'refunded', label: `Bounty #${v[0]} refunded` });
-        else if (t[0] === 'agent' && t[1] === 'register') items.push({ ...base, kind: 'register', label: `Agent registered: ${name(v)}` });
-        else if (t[0] === 'agent' && t[1] === 'paid') items.push({ ...base, kind: 'reputation', label: `Reputation +${xlm(v[1])} for ${name(v[0])}` });
+        const v = valueOf(e);
+        const base: ActivityBase = { id: e.id ?? `${e.txHash}:${t.join()}`, ledger: e.ledger, txHash: e.txHash, href: explorerTx(e.txHash) };
+        const item = buildLifecycleItem(t, v, base);
+        if (item) items.push(item);
       }
       break; // succeeded
     } catch {
@@ -112,15 +164,8 @@ export async function getActivity(): Promise<ActivityItem[]> {
         for (const e of resp.events as any[]) {
           const t = topicsOf(e);
           const amount = valueOf(e);
-          const to = String(t[2] ?? '');
-          items.push({
-            id: e.id ?? e.txHash,
-            ledger: e.ledger,
-            txHash: e.txHash,
-            href: EXPLORER_TX + e.txHash,
-            kind: 'x402',
-            label: `${name(A)} paid ${name(to)} — ${usdc(amount)} (x402)`,
-          });
+          const base: ActivityBase = { id: e.id ?? e.txHash, ledger: e.ledger, txHash: e.txHash, href: explorerTx(e.txHash) };
+          items.push(buildTransferItem(t, amount, A, base));
         }
         break;
       } catch {
@@ -129,5 +174,5 @@ export async function getActivity(): Promise<ActivityItem[]> {
     }
   }
 
-  return items.sort((a, b) => b.ledger - a.ledger).slice(0, 40);
+  return sortAndCap(items);
 }
