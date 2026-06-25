@@ -16,6 +16,7 @@ import { paymentMiddleware } from "@x402/express";
 import { HTTPFacilitatorClient, x402ResourceServer } from "@x402/core/server";
 import type { Network } from "@x402/core/types";
 import { ExactStellarScheme } from "@x402/stellar/exact/server";
+import { scrapeUrl, summarize } from "./work.js";
 
 const PORT = Number(process.env.AGENTS_PORT ?? 4021);
 const NETWORK = (process.env.X402_NETWORK ?? "stellar:testnet") as Network;
@@ -55,74 +56,6 @@ const routes = {
 const app = express();
 app.use(express.json());
 app.use(paymentMiddleware(routes, server));
-
-function decodeEntities(s: string): string {
-  return s
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#0?39;|&apos;/g, "'")
-    .replace(/&nbsp;/g, " ");
-}
-
-// --- Agent B does real work: fetch each URL and extract title/description/text.
-async function scrapeUrl(raw: string) {
-  const url = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), 8000);
-  try {
-    const r = await fetch(url, { signal: ctrl.signal, headers: { "user-agent": "QuestBoard-AgentB/0.1" } });
-    const html = await r.text();
-    const title = (html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] ?? "").replace(/\s+/g, " ").trim();
-    const description = (
-      html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']+)["']/i)?.[1] ??
-      html.match(/<meta[^>]+property=["']og:description["'][^>]+content=["']([^"']+)["']/i)?.[1] ??
-      ""
-    ).trim();
-    const text = html
-      .replace(/<script[\s\S]*?<\/script>/gi, " ")
-      .replace(/<style[\s\S]*?<\/style>/gi, " ")
-      .replace(/<[^>]+>/g, " ")
-      .replace(/\s+/g, " ")
-      .trim();
-    return {
-      url,
-      status: r.status,
-      title: decodeEntities(title),
-      description: decodeEntities(description),
-      words: text ? text.split(" ").length : 0,
-      excerpt: decodeEntities(text.slice(0, 500)),
-    };
-  } catch (e) {
-    return { url, error: e instanceof Error ? e.message : "fetch failed" };
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
-// --- Agent C does real work: extractive summarization (term-frequency sentence scoring).
-const STOP = new Set(
-  "the a an and or of to in for on is are be was were with that this as at by from it its their our your you we they he she".split(" ")
-);
-function summarize(text: string, maxSentences = 3): string {
-  const clean = text.replace(/\s+/g, " ").trim();
-  const sentences = clean.match(/[^.!?]+[.!?]+/g)?.map((s) => s.trim()) ?? (clean ? [clean] : []);
-  if (sentences.length <= maxSentences) return sentences.join(" ");
-  const freq: Record<string, number> = {};
-  for (const w of clean.toLowerCase().match(/[a-z]{3,}/g) ?? []) if (!STOP.has(w)) freq[w] = (freq[w] ?? 0) + 1;
-  return sentences
-    .map((s, i) => {
-      const words = s.toLowerCase().match(/[a-z]{3,}/g) ?? [];
-      const score = words.reduce((a, w) => a + (freq[w] ?? 0), 0) / Math.max(1, words.length);
-      return { s, i, score };
-    })
-    .sort((a, b) => b.score - a.score)
-    .slice(0, maxSentences)
-    .sort((a, b) => a.i - b.i)
-    .map((x) => x.s)
-    .join(" ");
-}
 
 // Agent B — scraper (paid x402 endpoint)
 app.get("/scrape", async (req, res) => {

@@ -12,20 +12,9 @@ import { config } from "dotenv";
 config({ path: [".env.local", ".env"] });
 import { Keypair } from "@stellar/stellar-sdk";
 import { listByStatus, getBounty, releasePayment } from "./bounty.js";
+import { acceptanceCheck } from "./acceptance.js";
 
 const POSTER_SECRET = process.env.POSTER_SECRET ?? "";
-
-/**
- * Acceptance policy (demo). Real deployments would run a task-specific validator
- * (schema check, test suite, LLM judge, fetch + verify the deliverable, …).
- * Here: the proof must exist and look like a real artifact reference.
- */
-function acceptanceCheck(proof: string | null): { pass: boolean; reason: string } {
-  if (!proof || !proof.trim()) return { pass: false, reason: "no proof submitted" };
-  const wellFormed = /^(x402-research|sha256:|ipfs:|https?:\/\/|Qm[1-9A-HJ-NP-Za-km-z]{20,})/i.test(proof);
-  if (!wellFormed && proof.length < 8) return { pass: false, reason: "proof too short / unrecognized" };
-  return { pass: true, reason: "proof present and well-formed" };
-}
 
 async function main() {
   if (!POSTER_SECRET) throw new Error("POSTER_SECRET not set (the bounty poster's secret seed).");

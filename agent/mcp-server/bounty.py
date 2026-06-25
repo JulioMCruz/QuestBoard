@@ -64,6 +64,33 @@ def _normalize_bounty(d: dict) -> dict:
     }
 
 
+# ---------------------------------------------- pure ABI param builders (testable)
+# Order + SCVal types here MUST match contracts/bounty_factory/src/lib.rs exactly.
+
+
+def create_bounty_params(source, title, description, amount, token, deadline_hours):
+    return [
+        scval.to_address(source),
+        scval.to_string(title),
+        scval.to_string(description),
+        scval.to_int128(_to_base_units(amount)),
+        scval.to_address(token),
+        scval.to_uint32(int(deadline_hours)),
+    ]
+
+
+def claim_bounty_params(bounty_id, agent):
+    return [scval.to_uint64(int(bounty_id)), scval.to_address(agent)]
+
+
+def submit_proof_params(bounty_id, agent, proof):
+    return [scval.to_uint64(int(bounty_id)), scval.to_address(agent), scval.to_string(proof)]
+
+
+def bounty_id_params(bounty_id):
+    return [scval.to_uint64(int(bounty_id))]
+
+
 # --------------------------------------------------------------------------- reads
 
 
@@ -109,14 +136,7 @@ def create_bounty(
     token: str | None = None,
 ) -> dict:
     token = token or DEFAULT_TOKEN
-    params = [
-        scval.to_address(source),
-        scval.to_string(title),
-        scval.to_string(description),
-        scval.to_int128(_to_base_units(amount)),
-        scval.to_address(token),
-        scval.to_uint32(int(deadline_hours)),
-    ]
+    params = create_bounty_params(source, title, description, amount, token, deadline_hours)
     res = invoke(contract_id, "create_bounty", params, secret)
     if not res["ok"]:
         return {"error": res["error"]}
@@ -126,7 +146,7 @@ def create_bounty(
 def claim_bounty(contract_id: str, bounty_id: int, agent: str, secret: str, endpoint: str = "") -> dict:
     # `endpoint` is not part of the contract ABI (claim_bounty(bounty_id, agent));
     # it is kept for caller compatibility but not sent on-chain.
-    params = [scval.to_uint64(int(bounty_id)), scval.to_address(agent)]
+    params = claim_bounty_params(bounty_id, agent)
     res = invoke(contract_id, "claim_bounty", params, secret)
     if not res["ok"]:
         return {"error": res["error"], "bounty_id": bounty_id}
@@ -135,7 +155,7 @@ def claim_bounty(contract_id: str, bounty_id: int, agent: str, secret: str, endp
 
 def submit_proof(contract_id: str, bounty_id: int, agent: str, secret: str, proof_hash: str, ipfs: str = "") -> dict:
     proof = f"{proof_hash}|ipfs:{ipfs}" if ipfs else proof_hash
-    params = [scval.to_uint64(int(bounty_id)), scval.to_address(agent), scval.to_string(proof)]
+    params = submit_proof_params(bounty_id, agent, proof)
     res = invoke(contract_id, "submit_proof", params, secret)
     if not res["ok"]:
         return {"error": res["error"], "bounty_id": bounty_id}
@@ -144,7 +164,7 @@ def submit_proof(contract_id: str, bounty_id: int, agent: str, secret: str, proo
 
 def release_payment(contract_id: str, bounty_id: int, caller: str, secret: str) -> dict:
     # Only the stored poster is authorized on-chain; `secret` must be the poster's.
-    params = [scval.to_uint64(int(bounty_id))]
+    params = bounty_id_params(bounty_id)
     res = invoke(contract_id, "release_payment", params, secret)
     if not res["ok"]:
         return {"error": res["error"], "bounty_id": bounty_id}
@@ -152,7 +172,7 @@ def release_payment(contract_id: str, bounty_id: int, caller: str, secret: str) 
 
 
 def refund(contract_id: str, bounty_id: int, caller: str, secret: str) -> dict:
-    params = [scval.to_uint64(int(bounty_id))]
+    params = bounty_id_params(bounty_id)
     res = invoke(contract_id, "refund", params, secret)
     if not res["ok"]:
         return {"error": res["error"], "bounty_id": bounty_id}
