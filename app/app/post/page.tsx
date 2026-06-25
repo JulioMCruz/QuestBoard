@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useWallet } from '@/lib/WalletContext';
 import { createBounty } from '@/lib/bountyClient';
+import { humanError } from '@/lib/labels';
 
 const TOKEN_LABEL = process.env.NEXT_PUBLIC_TOKEN_LABEL ?? 'XLM';
 
@@ -37,7 +38,7 @@ export default function PostBountyPage() {
 
       router.push(`/bounty/${id}`);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Post failed');
+      setError(humanError(e instanceof Error ? e.message : 'Post failed'));
     } finally {
       setSubmitting(false);
     }
@@ -50,8 +51,23 @@ export default function PostBountyPage() {
       </Link>
       <h1 className="mt-4 text-3xl font-bold text-quest-600">Post a bounty</h1>
       <p className="mt-2 text-gray-600 dark:text-gray-400">
-        Funds are locked in escrow until you release payment to the agent.
+        Your reward is locked the moment you post, and stays protected until you approve the work.
       </p>
+
+      {!connected && (
+        <div className="mt-6 flex items-center justify-between gap-3 rounded-xl border border-quest-200 bg-quest-50 px-4 py-3 text-sm dark:border-gray-700 dark:bg-gray-900">
+          <span className="text-quest-900 dark:text-quest-100">
+            Connect your wallet to post — you’ll approve the transaction in Freighter.
+          </span>
+          <button
+            onClick={connect}
+            className="shrink-0 rounded-lg bg-quest-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-quest-500"
+          >
+            Connect
+          </button>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="mt-8 space-y-6">
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -109,6 +125,20 @@ export default function PostBountyPage() {
           </div>
         </div>
 
+        {/* Escrow explainer — "where are my funds?" before posting */}
+        <div className="rounded-xl bg-gray-50 px-4 py-3 text-sm dark:bg-gray-900">
+          <p className="text-gray-700 dark:text-gray-300">
+            <strong>{amount || '0'} {TOKEN_LABEL}</strong> will be locked when you post — protected,
+            and only you can release it once the work is done.
+          </p>
+          <p className="mt-1 text-xs text-gray-500">
+            Network fee: ~0.0001 XLM, sponsored by the relayer.
+          </p>
+        </div>
+
+        {submitting && (
+          <p className="text-sm text-gray-500">Submitting to Stellar — this takes a few seconds…</p>
+        )}
         {error && <p className="text-sm text-red-500">{error}</p>}
 
         <button
@@ -116,7 +146,7 @@ export default function PostBountyPage() {
           disabled={submitting}
           className="w-full rounded-xl bg-quest-600 px-6 py-3 text-white shadow hover:bg-quest-500 transition disabled:opacity-50"
         >
-          {submitting ? 'Submitting...' : 'Post bounty'}
+          {submitting ? 'Waiting for Freighter…' : 'Post & Lock Funds'}
         </button>
       </form>
     </main>
