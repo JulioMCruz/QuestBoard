@@ -2,13 +2,19 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { isConnected, getAddress } from '@stellar/freighter-api';
+import Link from 'next/link';
+import { useWallet } from '@/lib/WalletContext';
+import { WalletButton } from '@/components/WalletButton';
+import { createBounty } from '@/lib/bountyClient';
+
+const TOKEN_LABEL = process.env.NEXT_PUBLIC_TOKEN_LABEL ?? 'XLM';
 
 export default function PostBountyPage() {
   const router = useRouter();
+  const { address, connected, connect } = useWallet();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [amountUsdc, setAmountUsdc] = useState('0.5');
+  const [amount, setAmount] = useState('0.5');
   const [deadlineHours, setDeadlineHours] = useState('24');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -18,15 +24,19 @@ export default function PostBountyPage() {
     setError(null);
     setSubmitting(true);
     try {
-      const connected = await isConnected();
-      if (!connected) throw new Error('Install Freighter wallet');
-      const addr = await getAddress();
-      if (addr.error || !addr.address) throw new Error('Freighter error');
+      if (!connected || !address) {
+        await connect();
+        throw new Error('Connect your Freighter wallet, then post again.');
+      }
 
-      // TODO: build Soroban tx calling BountyFactory.create_bounty
-      // For MVP we just show success
-      await new Promise((r) => setTimeout(r, 800));
-      router.push('/');
+      const id = await createBounty(address, {
+        title,
+        description,
+        amount: parseFloat(amount),
+        deadlineHours: parseInt(deadlineHours, 10),
+      });
+
+      router.push(`/bounty/${id}`);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Post failed');
     } finally {
@@ -36,7 +46,13 @@ export default function PostBountyPage() {
 
   return (
     <main className="mx-auto max-w-2xl px-6 py-12">
-      <h1 className="text-3xl font-bold text-quest-600">Post a bounty</h1>
+      <div className="flex items-center justify-between">
+        <Link href="/" className="text-sm text-quest-600 hover:underline">
+          ← Back to bounties
+        </Link>
+        <WalletButton />
+      </div>
+      <h1 className="mt-4 text-3xl font-bold text-quest-600">Post a bounty</h1>
       <p className="mt-2 text-gray-600 dark:text-gray-400">
         Funds are locked in escrow until you release payment to the agent.
       </p>
@@ -70,15 +86,15 @@ export default function PostBountyPage() {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Amount (USDC)
+              Amount ({TOKEN_LABEL})
             </label>
             <input
               type="number"
               step="0.01"
               min="0.01"
               required
-              value={amountUsdc}
-              onChange={(e) => setAmountUsdc(e.target.value)}
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
               className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2 dark:bg-gray-800 dark:border-gray-700"
             />
           </div>
