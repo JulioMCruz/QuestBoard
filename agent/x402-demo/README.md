@@ -65,6 +65,23 @@ poster posts bounty ──▶ Agent A claims ──▶ A pays B+C via x402 ─�
             Agent A receives 5 XLM (escrow);  proof: x402-research|sha256:b496f…
 ```
 
+## Reputation loop
+
+When a bounty is released, the BountyFactory emits a `(bounty, paid)` event. A
+small **indexer** (`src/indexer.ts`) watches those events and calls
+`AgentRegistry.record_payment` as the registry admin, so the agent's on-chain
+score bumps. Agents register once via `src/register.ts`.
+
+```bash
+npm run register   # Agent A gets an on-chain profile (idempotent)
+npm run indexer    # record paid bounties -> registry scores (idempotent per bounty)
+```
+
+Idempotent via a local cursor (`.indexer-cursor.json`, gitignored): a ledger
+position plus the set of already-recorded bounty ids, so re-runs never
+double-count. **Verified:** bounty #4 → ResearchAgent A `score 50000000,
+bounties_done 1`; a full re-scan recorded 0 new.
+
 ## Notes
 
 - USDC SAC (testnet): `CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA`.
