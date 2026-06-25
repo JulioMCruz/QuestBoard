@@ -15,7 +15,7 @@ const USDC_CONTRACT =
   process.env.NEXT_PUBLIC_USDC_CONTRACT ||
   "CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA";
 
-export async function middleware(request: NextRequest) {
+async function requirePayment(request: NextRequest) {
   const paymentHeader = request.headers.get("X-PAYMENT");
   if (!paymentHeader) {
     return new NextResponse(
@@ -51,7 +51,7 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const paymentCheck = await middleware(request);
+  const paymentCheck = await requirePayment(request);
   if (paymentCheck) return paymentCheck;
 
   return NextResponse.json({
@@ -75,7 +75,7 @@ export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const paymentCheck = await middleware(request);
+  const paymentCheck = await requirePayment(request);
   if (paymentCheck) return paymentCheck;
 
   try {

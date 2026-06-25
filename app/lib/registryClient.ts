@@ -1,26 +1,74 @@
 /**
- * QuestBoard AgentRegistry client using generated TypeScript bindings.
- * Reference: Stellar-mcp stellar_nextjs_wallet_scaffold
+ * QuestBoard AgentRegistry client — real on-chain reads + writes via the
+ * generated bindings.
  */
 
-import { Contract as RegistryContract, networks } from "@/packages/registry-bindings";
+import type { AgentProfile as ChainAgentProfile } from "@/lib/bindings/registryBindings";
+import { registryReadClient, registryWriteClient } from "./contractClients";
+import type { AgentProfile } from "./types";
 
-const AGENT_REGISTRY_ID = process.env.NEXT_PUBLIC_AGENT_REGISTRY_ID || "";
-
-export function getAgentRegistryContract() {
-  if (!AGENT_REGISTRY_ID) {
-    throw new Error("NEXT_PUBLIC_AGENT_REGISTRY_ID not set");
-  }
-  return new RegistryContract({
-    contractId: AGENT_REGISTRY_ID,
-    networkPassphrase: "Test SDF Network ; September 2015",
-    rpcUrl: process.env.NEXT_PUBLIC_SOROBAN_RPC || "https://soroban-testnet.stellar.org",
-  });
+function toUiAgent(p: ChainAgentProfile): AgentProfile {
+  return {
+    address: p.address,
+    name: p.name,
+    endpoint: p.endpoint,
+    description: p.description,
+    score: Number(p.score),
+    bountiesDone: Number(p.bounties_done),
+    registeredAt: Number(p.registered_at),
+  };
 }
 
-export async function getLeaderboard(limit: number = 10): Promise<any[]> {
-  const contract = getAgentRegistryContract();
-  // In production: call contract.get_leaderboard(limit)
-  // For MVP: return placeholder data
-  return [];
+// ----------------------------------------------------------------------- reads
+
+export async function getAgent(address: string, source?: string): Promise<AgentProfile | null> {
+  const client = registryReadClient(source);
+  const tx = await client.get_agent({ agent: address });
+  return tx.result ? toUiAgent(tx.result) : null;
+}
+
+/**
+ * Top-N agents by score. The contract returns (address, score) pairs; we enrich
+ * each with its full profile so the UI can show names + bounty counts.
+ */
+export async function getLeaderboard(limit = 10, source?: string): Promise<AgentProfile[]> {
+  const client = registryReadClient(source);
+  const tx = await client.get_leaderboard({ limit });
+  const pairs = tx.result ?? [];
+
+  const agents = await Promise.all(
+    pairs.map(async ([address, score]) => {
+      const profile = await client.get_agent({ agent: address });
+      if (profile.result) return toUiAgent(profile.result);
+      return {
+        address,
+        name: `${address.slice(0, 6)}…${address.slice(-4)}`,
+        endpoint: "",
+        description: "",
+        score: Number(score),
+        bountiesDone: 0,
+        registeredAt: 0,
+      } as AgentProfile;
+    })
+  );
+  return agents;
+}
+
+// ---------------------------------------------------------------------- writes
+
+export interface RegisterAgentInput {
+  name: string;
+  endpoint: string;
+  description: string;
+}
+
+export async function registerAgent(address: string, input: RegisterAgentInput): Promise<void> {
+  const client = registryWriteClient(address);
+  const tx = await client.register({
+    agent: address,
+    name: input.name,
+    endpoint: input.endpoint,
+    description: input.description,
+  });
+  await tx.signAndSend();
 }
