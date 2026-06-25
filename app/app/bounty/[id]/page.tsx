@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import useSWR from 'swr';
 import { useWallet } from '@/lib/WalletContext';
+import { useToast } from '@/lib/ToastContext';
 import { ConfirmModal } from '@/components/ConfirmModal';
 import { X402Explainer } from '@/components/X402Explainer';
 import {
@@ -28,9 +29,11 @@ const FACTORY_ID = process.env.NEXT_PUBLIC_BOUNTY_FACTORY_ID ?? '';
 export default function BountyDetailPage({ params }: { params: { id: string } }) {
   const id = parseInt(params.id, 10);
   const { address, connected: isConnected, connect } = useWallet();
+  const showToast = useToast();
   const { data: bounty, error, isLoading, mutate } = useSWR(
     Number.isNaN(id) ? null : `bounty:${id}`,
-    () => getBountyById(id)
+    () => getBountyById(id),
+    { refreshInterval: 10000 }
   );
 
   const [busy, setBusy] = useState(false);
@@ -38,7 +41,7 @@ export default function BountyDetailPage({ params }: { params: { id: string } })
   const [proof, setProof] = useState('');
   const [confirm, setConfirm] = useState<null | 'release' | 'refund'>(null);
 
-  async function run(fn: () => Promise<void>) {
+  async function run(fn: () => Promise<string | undefined | void>, successMsg: string) {
     setActionError(null);
     setBusy(true);
     try {
@@ -46,9 +49,10 @@ export default function BountyDetailPage({ params }: { params: { id: string } })
         await connect();
         throw new Error('Connect your wallet, then try again.');
       }
-      await fn();
+      const hash = await fn();
       setConfirm(null);
       await mutate();
+      showToast({ message: successMsg, txHash: typeof hash === 'string' ? hash : undefined });
     } catch (e) {
       setActionError(humanError(e instanceof Error ? e.message : 'Transaction failed'));
     } finally {
@@ -116,7 +120,7 @@ export default function BountyDetailPage({ params }: { params: { id: string } })
 
         <div className="mt-8 space-y-3">
           {bounty.status === 'Open' && (
-            <ActionButton onClick={() => run(() => claimBounty(me!, bounty.id))} busy={busy}>
+            <ActionButton onClick={() => run(() => claimBounty(me!, bounty.id), "Bounty claimed — you're on it.")} busy={busy}>
               Claim as agent
             </ActionButton>
           )}
@@ -130,7 +134,7 @@ export default function BountyDetailPage({ params }: { params: { id: string } })
                 className="w-full rounded-lg border border-gray-300 px-4 py-2 dark:bg-gray-800 dark:border-gray-700"
               />
               <ActionButton
-                onClick={() => run(() => submitProof(me!, bounty.id, proof))}
+                onClick={() => run(() => submitProof(me!, bounty.id, proof), 'Proof submitted — awaiting approval.')}
                 busy={busy}
                 disabled={!proof.trim()}
               >
@@ -152,13 +156,24 @@ export default function BountyDetailPage({ params }: { params: { id: string } })
             </button>
           )}
 
-          {!finalized && isPoster && (
+          {/* Refund: a primary button only when no agent is working; a quiet,
+              warned link while a claim is in flight (don't cancel active work casually). */}
+          {bounty.status === 'Open' && isPoster && (
             <button
               onClick={() => setConfirm('refund')}
               disabled={busy}
               className="w-full rounded-xl border border-red-300 px-6 py-3 text-red-600 hover:bg-red-50 transition disabled:opacity-50 dark:hover:bg-red-950"
             >
               Get my funds back
+            </button>
+          )}
+          {(bounty.status === 'Claimed' || bounty.status === 'Submitted') && isPoster && (
+            <button
+              onClick={() => setConfirm('refund')}
+              disabled={busy}
+              className="text-xs text-red-500 hover:underline disabled:opacity-50"
+            >
+              Cancel &amp; refund — this cancels the agent’s active work
             </button>
           )}
 
@@ -208,7 +223,7 @@ export default function BountyDetailPage({ params }: { params: { id: string } })
         }
         confirmLabel="Release payment"
         busy={busy}
-        onConfirm={() => run(() => releasePayment(me!, bounty.id))}
+        onConfirm={() => run(() => releasePayment(me!, bounty.id), 'Payment released to the agent.')}
         onCancel={() => setConfirm(null)}
       />
       <ConfirmModal
@@ -223,7 +238,7 @@ export default function BountyDetailPage({ params }: { params: { id: string } })
         confirmLabel="Get my funds back"
         danger
         busy={busy}
-        onConfirm={() => run(() => refundBounty(me!, bounty.id))}
+        onConfirm={() => run(() => refundBounty(me!, bounty.id), 'Funds returned to your wallet.')}
         onCancel={() => setConfirm(null)}
       />
     </Shell>

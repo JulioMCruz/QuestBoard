@@ -41,7 +41,23 @@ export async function getBounty(id: number, secret: string) {
     poster: b.poster,
     agent: b.agent ?? null,
     amount: String(b.amount),
+    proof: (b.submission_proof ?? null) as string | null,
   };
+}
+
+/** List bounty ids in a given status (Open | Claimed | Submitted | Released | Refunded). */
+export async function listByStatus(status: string, secret: string): Promise<number[]> {
+  const { client } = await bountyClient(secret);
+  const tx = await client.list_by_status({ status: { tag: status, values: undefined } });
+  return ((tx.result ?? []) as bigint[]).map((n) => Number(n));
+}
+
+/** Release escrow to the agent. Signs as the poster (`secret` must be the poster's). */
+export async function releasePayment(id: number, secret: string) {
+  const { client } = await bountyClient(secret);
+  const tx = await client.release_payment({ bounty_id: BigInt(id) });
+  const sent = await tx.signAndSend();
+  return { txHash: sent.sendTransactionResponse?.hash };
 }
 
 /** Claim an open bounty as this agent. */

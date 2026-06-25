@@ -78,7 +78,15 @@ export interface CreateBountyInput {
 }
 
 /** Create a bounty, locking `amount` of the token in escrow. Returns the new id. */
-export async function createBounty(address: string, input: CreateBountyInput): Promise<number> {
+/** Best-effort extraction of the submitted transaction hash for a receipt link. */
+function txHashOf(sent: { sendTransactionResponse?: { hash?: string } }): string | undefined {
+  return sent?.sendTransactionResponse?.hash;
+}
+
+export async function createBounty(
+  address: string,
+  input: CreateBountyInput
+): Promise<{ id: number; txHash?: string }> {
   const client = bountyWriteClient(address);
   const tx = await client.create_bounty({
     poster: address,
@@ -89,29 +97,29 @@ export async function createBounty(address: string, input: CreateBountyInput): P
     deadline_hours: input.deadlineHours,
   });
   const sent = await tx.signAndSend();
-  return Number(sent.result);
+  return { id: Number(sent.result), txHash: txHashOf(sent) };
 }
 
-export async function claimBounty(address: string, id: number): Promise<void> {
+export async function claimBounty(address: string, id: number): Promise<string | undefined> {
   const client = bountyWriteClient(address);
   const tx = await client.claim_bounty({ bounty_id: BigInt(id), agent: address });
-  await tx.signAndSend();
+  return txHashOf(await tx.signAndSend());
 }
 
-export async function submitProof(address: string, id: number, proof: string): Promise<void> {
+export async function submitProof(address: string, id: number, proof: string): Promise<string | undefined> {
   const client = bountyWriteClient(address);
   const tx = await client.submit_proof({ bounty_id: BigInt(id), agent: address, proof });
-  await tx.signAndSend();
+  return txHashOf(await tx.signAndSend());
 }
 
-export async function releasePayment(address: string, id: number): Promise<void> {
+export async function releasePayment(address: string, id: number): Promise<string | undefined> {
   const client = bountyWriteClient(address);
   const tx = await client.release_payment({ bounty_id: BigInt(id) });
-  await tx.signAndSend();
+  return txHashOf(await tx.signAndSend());
 }
 
-export async function refundBounty(address: string, id: number): Promise<void> {
+export async function refundBounty(address: string, id: number): Promise<string | undefined> {
   const client = bountyWriteClient(address);
   const tx = await client.refund({ bounty_id: BigInt(id) });
-  await tx.signAndSend();
+  return txHashOf(await tx.signAndSend());
 }

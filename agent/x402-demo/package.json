@@ -9,6 +9,7 @@
     "agent-a": "tsx src/agent-a.ts",
     "register": "tsx src/register.ts",
     "indexer": "tsx src/indexer.ts",
+    "accept": "tsx src/accept.ts",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
