@@ -19,9 +19,19 @@ contracts/bounty_factory/
 ├── Cargo.toml              # Package manifest
 ├── src/
 │   ├── lib.rs              # Contract impl + state machine
-│   └── test.rs             # 9 unit tests
+│   └── test.rs             # 10 unit tests
 └── README.md
 ```
+
+## Deployed (Stellar testnet)
+
+| | Contract ID |
+|---|---|
+| **BountyFactory** | `CDFHTM4NKHFQFXY6VO4HPHWNOY56XIB3BI5HCHGTJ2GUJML3CLA2VPZ6` |
+
+Deployed and verified end-to-end on 2026-06-24 (create → escrow → claim → submit →
+release → agent paid, plus the refund path). Escrow was exercised with the native
+XLM SAC. [stellar.expert](https://stellar.expert/explorer/testnet/contract/CDFHTM4NKHFQFXY6VO4HPHWNOY56XIB3BI5HCHGTJ2GUJML3CLA2VPZ6)
 
 ## Public API
 
@@ -61,13 +71,17 @@ The `(bounty, paid)` event is what AgentRegistry listens for to bump agent score
 
 ## Token
 
-Uses the Soroban `token::Client` to pull/push USDC. Works with **any Soroban token
+Uses the Soroban `token::Client` to pull/push tokens. Works with **any Soroban token
 contract** that implements the standard interface (SAC, custom, etc.).
 
-For Stellar PULSO demo: `CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3UDAMQA` (USDC testnet,
-from PerkOS-xyz/Stellar-x402-Relayer README).
+- **Verified with:** the native XLM SAC `CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC`
+  (no trustline required, so it's the simplest token for end-to-end testing).
+- **USDC testnet SAC:** `CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA`
+  ⚠️ Classic-asset SACs require the **recipient to hold a trustline** before
+  `transfer`/`mint` will succeed — established separately, not by this contract.
+  (An earlier 50-char value floating around the repo was truncated/invalid.)
 
-## Tests (9)
+## Tests (10)
 
 | Test | What it covers |
 |---|---|
@@ -91,21 +105,29 @@ from PerkOS-xyz/Stellar-x402-Relayer README).
 ## Build / test / deploy
 
 ```bash
-cd contracts/bounty_factory
-cargo build --target wasm32-unknown-unknown --release
-cargo test
+# From contracts/ (workspace root). The crate sets
+# [lib] crate-type = ["cdylib","rlib"] so the build emits wasm.
+cargo test                                   # 10 unit tests
+
+stellar contract build                       # -> target/wasm32v1-none/release/bounty_factory.wasm
+
 stellar contract deploy \
-  --wasm target/wasm32-unknown-unknown/release/bounty_factory.wasm \
-  --source <KEY> \
-  --network testnet \
-  -- \
-  --admin <ADMIN_ADDRESS>
+  --wasm target/wasm32v1-none/release/bounty_factory.wasm \
+  --source <KEY> --network testnet
+# init is a separate call (NOT a constructor); admin is optional:
+stellar contract invoke --id <CONTRACT_ID> --source <KEY> --network testnet \
+  -- init --admin null
 ```
+
+> Note: `stellar contract build` (CLI ≥ 23) targets `wasm32v1-none`. Install it once
+> with `rustup target add wasm32v1-none`.
 
 ## Security notes
 
 ⚠️ Unaudited. Demo-grade only.
 
+- `release_payment` only pays in the **Submitted** state — the agent must submit
+  proof first, so a poster can't release before any work is delivered.
 - `refund` allows skipping authorization when deadline passed — relies on
   Soroban's `ledger().timestamp()` which is deterministic but can be manipulated
   if the network is compromised.

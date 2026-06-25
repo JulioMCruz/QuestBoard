@@ -11,9 +11,23 @@ contracts/agent_registry/
 ├── Cargo.toml
 ├── src/
 │   ├── lib.rs              # Contract impl
-│   └── test.rs             # 9 unit tests
+│   └── test.rs             # 11 unit tests
 └── README.md
 ```
+
+## Deployed (Stellar testnet)
+
+| | Contract ID |
+|---|---|
+| **AgentRegistry** | `CCHFKVBTJHZEQVKA7H3MLY36SPRJHRH2IDLUWS3XY2DKIF5N5Y3TRBID` |
+
+Deployed and verified end-to-end on 2026-06-24 (register → record_payment →
+leaderboard, and the auth-bypass attack is now rejected).
+[stellar.expert](https://stellar.expert/explorer/testnet/contract/CCHFKVBTJHZEQVKA7H3MLY36SPRJHRH2IDLUWS3XY2DKIF5N5Y3TRBID)
+
+> ⚠️ A first deployment (`CCTGTFYT5VYHAIV6POOHS7D55TMTCRV7LABRZYWNX4W4H7WSUF2RSMY5`)
+> contained the `record_payment` auth bypass — **do not use it.** The address above
+> is the fixed build.
 
 ## Public API
 
@@ -72,7 +86,7 @@ The `endpoint` field matches the ERC-8004 agent metadata schema. PerkOS Stack's
 `GET /api/erc8004/identity/{address}` can serve this profile to agents that
 want to discover QuestBoard agents.
 
-## Tests (9)
+## Tests (11)
 
 | Test | What it covers |
 |---|---|
@@ -82,6 +96,7 @@ want to discover QuestBoard agents.
 | `test_update_profile` | partial update works |
 | `test_record_payment_by_admin` | admin can record + score grows |
 | `test_record_payment_rejects_non_admin` | non-admin caller rejected |
+| `test_record_payment_requires_caller_signature` | passing the admin's address without its signature is rejected (auth-bypass regression) |
 | `test_record_payment_rejects_unregistered_agent` | must register first |
 | `test_leaderboard_returns_sorted_top_n` | selection sort descending |
 | `test_leaderboard_limit_larger_than_count` | handles limit overflow |
@@ -90,25 +105,35 @@ want to discover QuestBoard agents.
 ## Build / test / deploy
 
 ```bash
-cd contracts/agent_registry
-cargo build --target wasm32-unknown-unknown --release
-cargo test
+# From contracts/ (workspace root). The crate sets
+# [lib] crate-type = ["cdylib","rlib"] so the build emits wasm.
+cargo test                                   # 11 unit tests
+
+stellar contract build                       # -> target/wasm32v1-none/release/agent_registry.wasm
+
 stellar contract deploy \
-  --wasm target/wasm32-unknown-unknown/release/agent_registry.wasm \
-  --source <KEY> \
-  --network testnet \
-  -- \
-  --admin <ADMIN_ADDRESS>
+  --wasm target/wasm32v1-none/release/agent_registry.wasm \
+  --source <KEY> --network testnet
+# init is a separate call (NOT a constructor) and admin is required:
+stellar contract invoke --id <CONTRACT_ID> --source <KEY> --network testnet \
+  -- init --admin <ADMIN_ADDRESS>
 ```
+
+> Note: `stellar contract build` (CLI ≥ 23) targets `wasm32v1-none`. Install it once
+> with `rustup target add wasm32v1-none`.
 
 ## Security notes
 
 ⚠️ Unaudited.
 
-- `record_payment` is admin-gated — losing the admin key = losing reputation control
+- `record_payment` calls `caller.require_auth()` **and** checks `caller == admin`.
+  The `require_auth` is essential: without it, anyone could pass the admin's
+  (public) address as `caller` and forge reputation. The address check alone is
+  NOT sufficient.
+- Admin-gated — losing the admin key = losing reputation control.
 - `get_leaderboard` is O(n²) selection sort — fine for <100 agents, replace with
-  off-chain indexer for production scale
-- No fee collection
+  off-chain indexer for production scale.
+- No fee collection.
 
 ## License
 
