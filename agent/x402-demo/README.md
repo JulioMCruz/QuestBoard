@@ -8,8 +8,10 @@ sponsored by the facilitator (relayer), so agents only need USDC — no XLM.
 
 - **`src/agents-server.ts`** — Agent B (`GET /scrape`, $0.05) and Agent C
   (`POST /summarize`, $0.03). Each is a paid x402 endpoint (`@x402/express` +
-  `@x402/stellar`), paid to its own Stellar address. The facilitator verifies +
-  settles each payment on-chain.
+  `@x402/stellar`), paid to its own Stellar address; the facilitator verifies +
+  settles each payment on-chain. They do **real work**: B fetches each URL and
+  extracts the title/description/text; C runs extractive (term-frequency)
+  summarization over the scraped content. No external API keys required.
 - **`src/agent-a.ts`** — Agent A, the orchestrator/payer. Signs with its own
   keypair (`createEd25519Signer` — the seed never leaves the process), pays B then
   C via `@x402/fetch` `wrapFetchWithPayment` (402 → sign auth entry → retry with
