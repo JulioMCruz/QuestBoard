@@ -140,4 +140,9 @@ dist
 # Vite files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Rust / Soroban build artifacts
+target/
+**/test_snapshots/
+contracts/wasm-out/
 .vite/

@@ -105,7 +105,7 @@ impl AgentRegistry {
         env.storage().instance().set(&DataKey::AllAgents, &all);
 
         env.events().publish(
-            (symbol_short!("agent"), symbol_short!("registered")),
+            (symbol_short!("agent"), symbol_short!("register")),
             agent,
         );
     }
@@ -154,6 +154,12 @@ impl AgentRegistry {
     /// * `agent` — the agent that received payment
     /// * `amount` — paid amount in token base units
     pub fn record_payment(env: Env, caller: Address, agent: Address, amount: i128) {
+        // SECURITY: require_auth proves the caller actually signed this tx.
+        // Without it, anyone could pass the admin's (public) address as `caller`
+        // and forge reputation updates. The `caller != admin` check alone is NOT
+        // sufficient because addresses are public.
+        caller.require_auth();
+
         let admin: Address = env
             .storage()
             .instance()
@@ -219,24 +225,24 @@ impl AgentRegistry {
         for i in 0..n {
             let mut best_idx = i;
             for j in (i + 1)..n {
-                let a = entries.get(j).1;
-                let b = entries.get(best_idx).1;
+                let a = entries.get_unchecked(j).1;
+                let b = entries.get_unchecked(best_idx).1;
                 if a > b {
                     best_idx = j;
                 }
             }
             if best_idx != i {
-                let tmp = entries.get(i).clone();
-                let other = entries.get(best_idx).clone();
+                let tmp = entries.get_unchecked(i);
+                let other = entries.get_unchecked(best_idx);
                 entries.set(i, other);
                 entries.set(best_idx, tmp);
             }
         }
 
         let mut out: Vec<(Address, i128)> = Vec::new(&env);
-        let take = if (limit as usize) > n { n } else { limit as usize };
+        let take = if limit > n { n } else { limit };
         for i in 0..take {
-            out.push_back(entries.get(i).clone());
+            out.push_back(entries.get_unchecked(i));
         }
         out
     }
