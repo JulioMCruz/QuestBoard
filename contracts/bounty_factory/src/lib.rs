@@ -211,8 +211,8 @@ impl BountyFactory {
         bounty.poster.require_auth();
 
         match bounty.status {
-            BountyStatus::Submitted | BountyStatus::Claimed => {}
-            _ => panic!("bounty not in claimable state"),
+            BountyStatus::Submitted => {}
+            _ => panic!("bounty not in claimable state — agent must submit proof first"),
         }
 
         let agent = bounty

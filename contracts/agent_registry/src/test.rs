@@ -157,6 +157,35 @@ fn test_record_payment_rejects_non_admin() {
 }
 
 #[test]
+fn test_record_payment_requires_caller_signature() {
+    // Regression: an attacker can read the admin's (public) address and pass it
+    // as `caller`. The contract must still reject the call unless the admin
+    // actually authorized it (caller.require_auth()).
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let admin = Address::generate(&env);
+    let agent = Address::generate(&env);
+    let contract_id = env.register(AgentRegistry, ());
+    let client = AgentRegistryClient::new(&env, &contract_id);
+    client.init(&admin);
+    client.register(
+        &agent,
+        &String::from_str(&env, "Bot"),
+        &String::from_str(&env, "https://example.com"),
+        &String::from_str(&env, ""),
+    );
+
+    // Drop to enforcing mode with no authorizations present.
+    env.set_auths(&[]);
+    let result = client.try_record_payment(&admin, &agent, &100i128);
+    assert!(
+        result.is_err(),
+        "record_payment must require the caller's signature, not just a matching address"
+    );
+}
+
+#[test]
 fn test_record_payment_rejects_unregistered_agent() {
     let env = Env::default();
     env.mock_all_auths();
@@ -207,9 +236,9 @@ fn test_leaderboard_returns_sorted_top_n() {
     // Top 3 should be: addr[1]=500, addr[2]=300, addr[0]=100
     let top3 = client.get_leaderboard(&3u32);
     assert_eq!(top3.len(), 3);
-    assert_eq!(top3.get(0).1, 500);
-    assert_eq!(top3.get(1).1, 300);
-    assert_eq!(top3.get(2).1, 100);
+    assert_eq!(top3.get(0).unwrap().1, 500);
+    assert_eq!(top3.get(1).unwrap().1, 300);
+    assert_eq!(top3.get(2).unwrap().1, 100);
 }
 
 #[test]

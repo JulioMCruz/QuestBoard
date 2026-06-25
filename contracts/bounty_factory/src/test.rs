@@ -11,13 +11,13 @@ use crate::{BountyFactory, BountyFactoryClient, BountyStatus};
 
 /// Helper: register a Soroban token contract for testing.
 fn create_token_contract<'a>(env: &'a Env, admin: &Address) -> token::Client<'a> {
-    let token_addr = env.register_stellar_asset_contract(admin.clone());
-    token::Client::new(env, &token_addr)
+    let sac = env.register_stellar_asset_contract_v2(admin.clone());
+    token::Client::new(env, &sac.address())
 }
 
 /// Helper: mint tokens to a user.
 fn mint(env: &Env, token: &token::Client, to: &Address, amount: i128) {
-    token.mint(to, &amount);
+    token::StellarAssetClient::new(env, &token.address).mint(to, &amount);
 }
 
 #[test]
