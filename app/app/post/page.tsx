@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useWallet } from '@/lib/WalletContext';
+import { useToast } from '@/lib/ToastContext';
 import { createBounty } from '@/lib/bountyClient';
 import { humanError } from '@/lib/labels';
 
@@ -12,6 +13,7 @@ const TOKEN_LABEL = process.env.NEXT_PUBLIC_TOKEN_LABEL ?? 'XLM';
 export default function PostBountyPage() {
   const router = useRouter();
   const { address, connected, connect } = useWallet();
+  const showToast = useToast();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('0.5');
@@ -29,13 +31,14 @@ export default function PostBountyPage() {
         throw new Error('Connect your Freighter wallet, then post again.');
       }
 
-      const id = await createBounty(address, {
+      const { id, txHash } = await createBounty(address, {
         title,
         description,
         amount: parseFloat(amount),
         deadlineHours: parseInt(deadlineHours, 10),
       });
 
+      showToast({ message: `Bounty #${id} posted — your funds are locked.`, txHash });
       router.push(`/bounty/${id}`);
     } catch (e) {
       setError(humanError(e instanceof Error ? e.message : 'Post failed'));

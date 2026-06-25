@@ -5,6 +5,7 @@ import useSWR from 'swr';
 import type { Bounty, AgentProfile } from '@/lib/types';
 import { listBounties } from '@/lib/bountyClient';
 import { getLeaderboard } from '@/lib/registryClient';
+import { statusLabel } from '@/lib/labels';
 
 const TOKEN_LABEL = process.env.NEXT_PUBLIC_TOKEN_LABEL ?? 'XLM';
 
@@ -59,7 +60,7 @@ function BountyCard({ bounty }: { bounty: Bounty }) {
       </div>
       <div className="mt-2">
         <span className="inline-block rounded bg-gray-100 px-2 py-1 text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-300">
-          {bounty.status}
+          {statusLabel(bounty.status, 'public')}
         </span>
       </div>
     </Link>

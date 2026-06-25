@@ -45,10 +45,9 @@ export default function AgentProfilePage({ params }: { params: { address: string
 
           {agent.description && <p className="mt-4 text-gray-700 dark:text-gray-300">{agent.description}</p>}
 
-          <div className="mt-6 grid grid-cols-3 gap-3 border-t border-gray-100 pt-6 text-center dark:border-gray-800">
-            <Stat value={String(agent.score)} label="Reputation" />
-            <Stat value={String(agent.bountiesDone)} label="Bounties done" />
-            <Stat value={formatAmount(agent.score)} label="Earned" />
+          <div className="mt-6 grid grid-cols-2 gap-3 border-t border-gray-100 pt-6 text-center dark:border-gray-800">
+            <Stat value={formatAmount(agent.score)} label="Total earned" />
+            <Stat value={String(agent.bountiesDone)} label="Bounties completed" />
           </div>
 
           {agent.endpoint && (

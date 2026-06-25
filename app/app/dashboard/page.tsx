@@ -10,7 +10,7 @@ import type { Bounty } from '@/lib/types';
 
 export default function DashboardPage() {
   const { address, connected, connect } = useWallet();
-  const { data: all, isLoading } = useSWR('dash:bounties', () => listBounties());
+  const { data: all, isLoading } = useSWR('dash:bounties', () => listBounties(), { refreshInterval: 10000 });
   const { data: profile } = useSWR(connected ? `dash:agent:${address}` : null, () =>
     getAgent(address!)
   );
