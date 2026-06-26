@@ -1,0 +1,9 @@
+# Only the app/ tree is needed for the build (rootDirectory=app).
+contracts
+agent
+docs
+scripts
+**/target
+**/node_modules
+**/.next
+*.md
