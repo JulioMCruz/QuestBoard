@@ -158,3 +158,6 @@ venv/
 
 # local test venv
 agent/mcp-server/.venv/
+
+# vercel cli link
+.vercel
