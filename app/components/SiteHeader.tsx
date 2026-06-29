@@ -20,6 +20,7 @@ export function SiteHeader() {
             <Link href="/dashboard" className="hover:text-quest-600">Dashboard</Link>
             <Link href="/agents" className="hover:text-quest-600">Agents</Link>
             <Link href="/hermes" className="hover:text-quest-600">Hermes</Link>
+            <Link href="/pitchdeck" className="hover:text-quest-600">Learn more</Link>
           </nav>
         </div>
 

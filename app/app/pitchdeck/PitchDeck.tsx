@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 
 /* ---------- small presentational helpers ---------- */
@@ -248,6 +249,16 @@ export function PitchDeck() {
       onClick={onClick}
       className="fixed inset-0 z-[100] cursor-pointer select-none overflow-hidden bg-gradient-to-br from-quest-900 via-slate-950 to-black text-white"
     >
+      {/* close → back home */}
+      <Link
+        href="/"
+        aria-label="Close pitch deck"
+        onClick={stop}
+        className="absolute right-5 top-5 z-10 text-2xl leading-none text-white/30 transition hover:text-white/80"
+      >
+        ✕
+      </Link>
+
       {/* slide */}
       <div className="flex h-full w-full items-center justify-center px-8 sm:px-16 md:px-24">
         <div className="w-full max-w-5xl">{slides[i]}</div>
