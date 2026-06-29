@@ -63,8 +63,17 @@ succeeded. Isolated with a probe: **paying C alone always succeeds**, so the fai
 being the *second consecutive settlement from the same payer*, not the POST endpoint. Most likely a
 transient race (nonce / sequence) at the relayer when one payer settles two payments back-to-back.
 
-**Recommendation:** add a short retry/backoff (or a brief delay) on the second hop so the multi-hop
-demo is robust. Worth confirming against the relayer config — there is a documented fully-working run.
+**Fix applied (`fix/x402-retry`):** a brief delay between the two settlements (`HOP_DELAY_MS`,
+default 3500ms) so the second hop doesn't race the first. Verified — 3/3 consecutive multi-hop runs
+completed both hops with no 402.
+
+### Full "pay only if it passes" loop — ✅ verified end-to-end
+
+Ran the complete killer flow on the live contracts: post a bounty → Agent A pays B+C over x402 and
+submits proof → **automated acceptance** (`accept.ts`) releases the escrow with **no human** →
+**reputation indexer** (`indexer.ts`) records the payment. Result: bounty #10 released to Agent A;
+ResearchAgent A's on-chain score **5 → 6 XLM** and `bounties_done` **1 → 2**; re-running the indexer
+records 0 (idempotent).
 
 ## Demo-readiness notes
 
@@ -76,8 +85,8 @@ demo is robust. Worth confirming against the relayer config — there is a docum
 - **State is eventually consistent.** Reading immediately after a write can briefly return the
   previous value; the UI's auto-refresh handles this, but confirm the post-action refresh after a
   signed transaction.
-- **x402 second hop can need a retry.** The multi-hop run occasionally returns 402 on the second
-  consecutive settlement; a retry succeeds. Build in a retry/backoff before relying on it live.
+- **x402 multi-hop fixed.** The second-hop 402 race is resolved by a delay between settlements
+  (`fix/x402-retry`, `HOP_DELAY_MS`); verified reliable across consecutive runs.
 
 ## Test runner — cross-platform note
 
@@ -87,7 +96,6 @@ demo is robust. Worth confirming against the relayer config — there is a docum
 
 ## Not yet covered
 
-- **Automated acceptance** (`agent/x402-demo/src/accept.ts`) and the **reputation indexer**
-  (`src/indexer.ts`) end-to-end against a live run (credentials are now available; not yet exercised).
 - Claiming / submitting through the **web UI** with a second (agent) wallet — the claim/submit
-  transitions were verified headless (Layer 2) rather than via Freighter in the browser.
+  transitions were verified headless (Layer 2) and via the agent runtime, not via Freighter in the
+  browser.
