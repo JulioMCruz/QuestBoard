@@ -36,6 +36,36 @@ end to end. Each step verified by reading on-chain state.
 The escrow correctly holds funds until acceptance and releases the full amount only after the
 agent submits proof. Reputation reflects exactly the settled work.
 
+## Layer 3 — Human wallet flow (Freighter) — ✅ pass
+
+Drove the full human signing flow in the browser against the live testnet contracts.
+
+| Step | Verified on-chain |
+|---|---|
+| Post a bounty (Freighter sign) | Bounty created (1 XLM escrowed); app redirected to the new bounty |
+| Refund (Freighter sign) | Status → `Refunded`; the 1 XLM returned to the wallet; UI showed "Refunded to you" |
+
+## Layer 4 — x402 multi-hop (agent-to-agent payments) — ✅ works, with a reliability note
+
+Ran the orchestrator (`agent/x402-demo`): Agent A pays Agent B to scrape and Agent C to summarize,
+each a paid HTTP-402 endpoint settled in USDC by the relayer (network fees sponsored).
+
+- **Paywall enforced** — both endpoints return `402` with valid payment requirements (decoded the
+  `PAYMENT-REQUIRED` header: exact scheme, USDC, payTo, testnet, fees sponsored).
+- **Settlement works on-chain** — a full multi-hop run settled both hops: **Agent B +$0.05** and
+  **Agent C +$0.03** (confirmed via on-chain USDC balances), and the orchestrator logged
+  "multi-hop x402 complete (A→B, A→C settled on Stellar)."
+
+### ⚠️ Finding — the second consecutive hop is intermittent
+
+The first runs reproducibly returned `402` on the **second** hop (the A→C payment); a later run
+succeeded. Isolated with a probe: **paying C alone always succeeds**, so the failure is tied to
+being the *second consecutive settlement from the same payer*, not the POST endpoint. Most likely a
+transient race (nonce / sequence) at the relayer when one payer settles two payments back-to-back.
+
+**Recommendation:** add a short retry/backoff (or a brief delay) on the second hop so the multi-hop
+demo is robust. Worth confirming against the relayer config — there is a documented fully-working run.
+
 ## Demo-readiness notes
 
 - **Re-seed fresh bounties before the demo.** The current demo bounties were seeded earlier with
@@ -46,6 +76,8 @@ agent submits proof. Reputation reflects exactly the settled work.
 - **State is eventually consistent.** Reading immediately after a write can briefly return the
   previous value; the UI's auto-refresh handles this, but confirm the post-action refresh after a
   signed transaction.
+- **x402 second hop can need a retry.** The multi-hop run occasionally returns 402 on the second
+  consecutive settlement; a retry succeeds. Build in a retry/backoff before relying on it live.
 
 ## Test runner — cross-platform note
 
@@ -55,9 +87,7 @@ agent submits proof. Reputation reflects exactly the settled work.
 
 ## Not yet covered
 
-- **Human wallet flow** — posting / claiming / releasing through the UI with Freighter signing.
-- **x402 multi-hop payments** (orchestrator pays scraper + summarizer) — needs a `RELAYER_API_KEY`
-  and USDC; covered by `agent/x402-demo` but not re-verified in this pass.
 - **Automated acceptance** (`agent/x402-demo/src/accept.ts`) and the **reputation indexer**
-  (`src/indexer.ts`) against a live run.
-- **Live smokes**: `scripts/test-contracts.sh --testnet`, `scripts/test-endpoints.sh` (402 paywall).
+  (`src/indexer.ts`) end-to-end against a live run (credentials are now available; not yet exercised).
+- Claiming / submitting through the **web UI** with a second (agent) wallet — the claim/submit
+  transitions were verified headless (Layer 2) rather than via Freighter in the browser.
