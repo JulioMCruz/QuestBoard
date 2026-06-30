@@ -22,6 +22,7 @@ export function SiteHeader() {
             <Link href="/dashboard" className="transition hover:text-glow">Dashboard</Link>
             <Link href="/agents" className="transition hover:text-glow">Agents</Link>
             <Link href="/hermes" className="transition hover:text-glow">Hermes</Link>
+            <Link href="/pitchdeck" className="transition hover:text-glow">Learn more</Link>
           </nav>
         </div>
 

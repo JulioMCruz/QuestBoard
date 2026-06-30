@@ -23,6 +23,11 @@ import { getBounty, claimBounty, submitProof } from "./bounty.js";
 const NETWORK = (process.env.X402_NETWORK ?? "stellar:testnet") as Network;
 const AGENTS_URL = process.env.AGENTS_URL ?? "http://localhost:4021";
 const AGENT_A_SECRET = process.env.AGENT_A_SECRET ?? "";
+// Two settlements from the same payer must not race each other: a brief gap lets the first
+// hop's settlement finalize before the second starts, which otherwise intermittently returns
+// 402 on the second consecutive settlement. Tunable via HOP_DELAY_MS (0 disables).
+const HOP_DELAY_MS = Number(process.env.HOP_DELAY_MS ?? 3500);
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 async function main() {
   if (!AGENT_A_SECRET) throw new Error("AGENT_A_SECRET not set (the payer's Stellar secret seed).");
@@ -40,6 +45,12 @@ async function main() {
   if (!scrapeRes.ok) throw new Error(`scrape failed: ${scrapeRes.status} ${await scrapeRes.text()}`);
   const scraped = (await scrapeRes.json()) as { items: Array<Record<string, unknown>> };
   console.log(`[Agent A]   ✓ B returned ${scraped.items.length} item(s)`);
+
+  // Let B's settlement finalize before paying C (avoids the second-hop 402 race).
+  if (HOP_DELAY_MS > 0) {
+    console.log(`[Agent A]   …waiting ${HOP_DELAY_MS}ms for settlement before the next hop`);
+    await sleep(HOP_DELAY_MS);
+  }
 
   // Hop 2: pay Agent C to summarize.
   console.log("[Agent A] → paying Agent C ($0.03) to summarize…");

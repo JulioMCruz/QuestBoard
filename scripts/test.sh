@@ -50,11 +50,13 @@ fi
 if want mcp; then
   if have python3; then
     VENV="$ROOT/agent/mcp-server/.venv"
-    if [ ! -d "$VENV" ]; then
-      python3 -m venv "$VENV"
-      "$VENV/bin/pip" install -q -r "$ROOT/agent/mcp-server/requirements.txt" -r "$ROOT/agent/mcp-server/requirements-dev.txt"
+    if [ ! -d "$VENV" ]; then python3 -m venv "$VENV"; fresh=1; fi
+    # venv executables live in Scripts/ on Windows, bin/ elsewhere
+    if [ -d "$VENV/Scripts" ]; then VBIN="$VENV/Scripts"; else VBIN="$VENV/bin"; fi
+    if [ "${fresh:-}" = 1 ]; then
+      "$VBIN/python" -m pip install -q -r "$ROOT/agent/mcp-server/requirements.txt" -r "$ROOT/agent/mcp-server/requirements-dev.txt"
     fi
-    run "mcp (pytest)" "cd '$ROOT/agent/mcp-server' && '$VENV/bin/python' -m pytest tests/ -q"
+    run "mcp (pytest)" "cd '$ROOT/agent/mcp-server' && '$VBIN/python' -m pytest tests/ -q"
   else SKIP+=("mcp: python3 not installed"); fi
 fi
 
