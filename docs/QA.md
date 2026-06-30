@@ -63,9 +63,9 @@ succeeded. Isolated with a probe: **paying C alone always succeeds**, so the fai
 being the *second consecutive settlement from the same payer*, not the POST endpoint. Most likely a
 transient race (nonce / sequence) at the relayer when one payer settles two payments back-to-back.
 
-**Fix applied (`fix/x402-retry`):** a brief delay between the two settlements (`HOP_DELAY_MS`,
-default 3500ms) so the second hop doesn't race the first. Verified — 3/3 consecutive multi-hop runs
-completed both hops with no 402.
+**Fix applied:** a brief delay between the two settlements (`HOP_DELAY_MS`, default 3500ms) so the
+second hop doesn't race the first. Verified — 3/3 consecutive multi-hop runs completed both hops
+with no 402.
 
 ### Full "pay only if it passes" loop — ✅ verified end-to-end
 
@@ -86,7 +86,7 @@ records 0 (idempotent).
   previous value; the UI's auto-refresh handles this, but confirm the post-action refresh after a
   signed transaction.
 - **x402 multi-hop fixed.** The second-hop 402 race is resolved by a delay between settlements
-  (`fix/x402-retry`, `HOP_DELAY_MS`); verified reliable across consecutive runs.
+  (`HOP_DELAY_MS`); verified reliable across consecutive runs.
 
 ## Test runner — cross-platform note
 
