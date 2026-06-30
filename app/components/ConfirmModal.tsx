@@ -35,28 +35,28 @@ export function ConfirmModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
       onClick={() => !busy && onCancel()}
     >
       <div
-        className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl dark:bg-gray-900"
+        className="w-full max-w-md rounded-2xl bg-ink-850 p-6 shadow-card ring-1 ring-white/10"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{title}</h2>
-        <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">{message}</div>
+        <h2 className="font-display text-lg font-bold text-white">{title}</h2>
+        <div className="mt-2 text-sm text-slate-300">{message}</div>
         <div className="mt-6 flex justify-end gap-3">
           <button
             onClick={onCancel}
             disabled={busy}
-            className="rounded-xl border border-gray-300 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700"
+            className="rounded-full border border-white/10 px-4 py-2 text-sm text-slate-300 transition hover:bg-white/5 disabled:opacity-50"
           >
             Cancel
           </button>
           <button
             onClick={onConfirm}
             disabled={busy}
-            className={`rounded-xl px-4 py-2 text-sm font-medium text-white shadow disabled:opacity-50 ${
-              danger ? 'bg-red-600 hover:bg-red-500' : 'bg-green-600 hover:bg-green-500'
+            className={`rounded-full px-4 py-2 text-sm font-semibold text-ink-950 shadow transition disabled:opacity-50 ${
+              danger ? 'bg-red-500 hover:bg-red-400' : 'bg-emerald-500 hover:bg-emerald-400'
             }`}
           >
             {busy ? 'Waiting for Freighter…' : confirmLabel}

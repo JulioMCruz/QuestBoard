@@ -23,6 +23,8 @@ import {
   shortAddr,
   type Role,
 } from '@/lib/labels';
+import { stripMarker, categoryOf } from '@/lib/quests';
+import { QuestIcon } from '@/components/QuestCard';
 
 const FACTORY_ID = process.env.NEXT_PUBLIC_BOUNTY_FACTORY_ID ?? '';
 
@@ -60,12 +62,12 @@ export default function BountyDetailPage({ params }: { params: { id: string } })
     }
   }
 
-  if (isLoading) return <Shell><p className="text-gray-500">Loading bounty…</p></Shell>;
-  if (error) return <Shell><p className="text-red-600">Failed to load: {(error as Error).message}</p></Shell>;
+  if (isLoading) return <Shell><p className="text-slate-400">Loading bounty…</p></Shell>;
+  if (error) return <Shell><p className="text-red-400">Failed to load: {(error as Error).message}</p></Shell>;
   if (!bounty)
     return (
       <Shell>
-        <p className="text-gray-600 dark:text-gray-300">Bounty #{params.id} not found.</p>
+        <p className="text-slate-300">Bounty #{params.id} not found.</p>
       </Shell>
     );
 
@@ -76,13 +78,20 @@ export default function BountyDetailPage({ params }: { params: { id: string } })
   const isAgent = me === bounty.agent;
   const role: Role = isPoster ? 'poster' : isAgent ? 'agent' : 'public';
   const finalized = bounty.status === 'Released' || bounty.status === 'Refunded';
+  const category = categoryOf(bounty);
 
   return (
     <Shell>
-      <article className="rounded-xl border border-quest-100 bg-white p-8 shadow-sm dark:bg-gray-900">
-        <div className="flex items-start justify-between gap-3">
-          <h1 className="text-2xl font-bold text-quest-600">{bounty.title}</h1>
-          <span className="shrink-0 rounded-full bg-quest-100 px-4 py-2 text-sm font-medium text-quest-900 dark:bg-quest-900 dark:text-quest-100">
+      <article className="rounded-2xl glass p-8 shadow-card">
+        <div className="flex items-start gap-4">
+          <QuestIcon cat={category} size="lg" />
+          <div className="min-w-0 flex-1">
+            <p className={`font-mono text-[11px] font-semibold uppercase tracking-[0.2em] ${category.color}`}>
+              {category.label}
+            </p>
+            <h1 className="mt-1 font-display text-2xl font-bold text-white">{bounty.title}</h1>
+          </div>
+          <span className="shrink-0 rounded-full bg-glow/15 px-4 py-2 font-mono text-sm font-medium text-glow-soft ring-1 ring-glow/30">
             {amountLabel}
           </span>
         </div>
@@ -91,14 +100,14 @@ export default function BountyDetailPage({ params }: { params: { id: string } })
           <span className={`rounded-full px-3 py-1 text-xs font-medium ${statusTone(bounty.status)}`}>
             {statusLabel(bounty.status, role)}
           </span>
-          {!finalized && <span className="text-xs text-gray-500">Expires in {deadlineHours}h</span>}
+          {!finalized && <span className="text-xs text-slate-400">Expires in {deadlineHours}h</span>}
         </div>
 
-        <p className="mt-4 text-gray-700 dark:text-gray-300">{bounty.description}</p>
+        <p className="mt-4 whitespace-pre-line text-slate-300">{stripMarker(bounty.description)}</p>
 
         {/* Where are my funds? — for the poster */}
         {isPoster && (
-          <p className="mt-5 rounded-lg bg-quest-50 px-4 py-2.5 text-sm text-quest-900 dark:bg-gray-800 dark:text-quest-100">
+          <p className="mt-5 rounded-xl bg-glow/10 px-4 py-2.5 text-sm text-slate-200 ring-1 ring-glow/15">
             {escrowLine(bounty.status, amountLabel)}
             {!finalized && ' · Only you can release payment.'}
           </p>
@@ -113,8 +122,8 @@ export default function BountyDetailPage({ params }: { params: { id: string } })
 
         {bounty.submissionProof && (
           <div className="mt-4">
-            <p className="text-xs text-gray-500">Submitted proof</p>
-            <p className="mt-1 break-all font-mono text-sm">{bounty.submissionProof}</p>
+            <p className="text-xs text-slate-400">Submitted proof</p>
+            <p className="mt-1 break-all font-mono text-sm text-slate-200">{bounty.submissionProof}</p>
           </div>
         )}
 
@@ -131,7 +140,7 @@ export default function BountyDetailPage({ params }: { params: { id: string } })
                 value={proof}
                 onChange={(e) => setProof(e.target.value)}
                 placeholder="Proof (hash, IPFS CID, URL…)"
-                className="w-full rounded-lg border border-gray-300 px-4 py-2 dark:bg-gray-800 dark:border-gray-700"
+                className="w-full rounded-xl border border-white/10 bg-ink-800/60 px-4 py-2 text-white placeholder:text-slate-500 transition focus:border-glow/50 focus:outline-none focus:ring-1 focus:ring-glow/30"
               />
               <ActionButton
                 onClick={() => run(() => submitProof(me!, bounty.id, proof), 'Proof submitted — awaiting approval.')}
@@ -141,7 +150,7 @@ export default function BountyDetailPage({ params }: { params: { id: string } })
                 Submit proof
               </ActionButton>
               {!isAgent && me && (
-                <p className="text-xs text-amber-600">Only the claiming agent can submit.</p>
+                <p className="text-xs text-gold-soft">Only the claiming agent can submit.</p>
               )}
             </div>
           )}
@@ -150,7 +159,7 @@ export default function BountyDetailPage({ params }: { params: { id: string } })
             <button
               onClick={() => setConfirm('release')}
               disabled={busy}
-              className="w-full rounded-xl bg-green-600 px-6 py-3 text-white shadow hover:bg-green-500 transition disabled:opacity-50"
+              className="w-full rounded-full bg-emerald-500 px-6 py-3 font-semibold text-ink-950 shadow-[0_0_40px_-10px_rgba(16,185,129,0.5)] transition hover:bg-emerald-400 disabled:opacity-50"
             >
               Review &amp; release payment
             </button>
@@ -162,7 +171,7 @@ export default function BountyDetailPage({ params }: { params: { id: string } })
             <button
               onClick={() => setConfirm('refund')}
               disabled={busy}
-              className="w-full rounded-xl border border-red-300 px-6 py-3 text-red-600 hover:bg-red-50 transition disabled:opacity-50 dark:hover:bg-red-950"
+              className="w-full rounded-full border border-red-500/40 px-6 py-3 text-red-300 transition hover:bg-red-500/10 disabled:opacity-50"
             >
               Get my funds back
             </button>
@@ -171,14 +180,14 @@ export default function BountyDetailPage({ params }: { params: { id: string } })
             <button
               onClick={() => setConfirm('refund')}
               disabled={busy}
-              className="text-xs text-red-500 hover:underline disabled:opacity-50"
+              className="text-xs text-red-400 hover:underline disabled:opacity-50"
             >
               Cancel &amp; refund — this cancels the agent’s active work
             </button>
           )}
 
           {finalized && (
-            <p className="rounded-lg bg-gray-100 px-4 py-3 text-sm text-gray-600 dark:bg-gray-800 dark:text-gray-300">
+            <p className="rounded-xl glass px-4 py-3 text-sm text-slate-300">
               This bounty is {statusLabel(bounty.status, role).toLowerCase()}.
             </p>
           )}
@@ -186,25 +195,25 @@ export default function BountyDetailPage({ params }: { params: { id: string } })
           {!isConnected && (
             <button
               onClick={connect}
-              className="w-full rounded-xl border border-quest-600 px-6 py-3 text-quest-600 hover:bg-quest-50 transition"
+              className="glass w-full rounded-full border border-glow/40 px-6 py-3 text-glow-soft transition hover:border-glow/70"
             >
               Connect your wallet to act
             </button>
           )}
 
           {busy && (
-            <p className="text-sm text-gray-500">Submitting to Stellar — this takes a few seconds…</p>
+            <p className="text-sm text-slate-400">Submitting to Stellar — this takes a few seconds…</p>
           )}
-          {actionError && <p className="text-sm text-red-500">{actionError}</p>}
+          {actionError && <p className="text-sm text-red-400">{actionError}</p>}
         </div>
 
         {FACTORY_ID && (
-          <p className="mt-6 border-t border-gray-100 pt-4 text-xs text-gray-400 dark:border-gray-800">
+          <p className="mt-6 border-t border-white/5 pt-4 text-xs text-slate-500">
             <a
               href={`https://stellar.expert/explorer/testnet/contract/${FACTORY_ID}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-quest-600"
+              className="hover:text-glow"
             >
               View contract on Stellar Explorer ↗
             </a>
@@ -248,7 +257,7 @@ export default function BountyDetailPage({ params }: { params: { id: string } })
 function Shell({ children }: { children: React.ReactNode }) {
   return (
     <main className="mx-auto max-w-3xl px-6 py-12">
-      <Link href="/dashboard" className="text-sm text-quest-600 hover:underline">
+      <Link href="/dashboard" className="text-sm text-glow hover:underline">
         ← Back to dashboard
       </Link>
       <div className="mt-6">{children}</div>
@@ -259,8 +268,8 @@ function Shell({ children }: { children: React.ReactNode }) {
 function Field({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
     <div>
-      <p className="text-gray-500">{label}</p>
-      <p className={`mt-1 font-medium ${mono ? 'font-mono' : ''}`}>{value}</p>
+      <p className="text-slate-400">{label}</p>
+      <p className={`mt-1 font-medium text-white ${mono ? 'font-mono' : ''}`}>{value}</p>
     </div>
   );
 }
@@ -280,7 +289,7 @@ function ActionButton({
     <button
       onClick={onClick}
       disabled={busy || disabled}
-      className="w-full rounded-xl bg-quest-600 px-6 py-3 text-white shadow transition hover:bg-quest-500 disabled:opacity-50"
+      className="w-full rounded-full bg-gold px-6 py-3 font-semibold text-ink-950 shadow-glow-gold transition hover:bg-gold-soft disabled:opacity-50"
     >
       {busy ? 'Waiting for Freighter…' : children}
     </button>

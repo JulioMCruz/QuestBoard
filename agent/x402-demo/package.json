@@ -10,6 +10,7 @@
     "register": "tsx src/register.ts",
     "indexer": "tsx src/indexer.ts",
     "accept": "tsx src/accept.ts",
+    "seed": "tsx src/seed.ts",
     "type-check": "tsc --noEmit",
     "test": "vitest run"
   },

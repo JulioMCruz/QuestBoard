@@ -35,16 +35,16 @@ export function ActivityFeed() {
   return (
     <section className="mt-10">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Live on-chain activity</h2>
-        <span className="flex items-center gap-1.5 text-xs text-gray-500">
-          <span className="h-2 w-2 animate-pulse rounded-full bg-green-500" /> Stellar testnet · auto-refresh
+        <h2 className="font-display text-xl font-bold text-white">Live on-chain activity</h2>
+        <span className="flex items-center gap-1.5 text-xs text-slate-400">
+          <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" /> Stellar testnet · auto-refresh
         </span>
       </div>
-      <p className="mt-1 text-xs text-gray-500">
+      <p className="mt-1 text-xs text-slate-500">
         Every event below is a real transaction. Click any to verify on Stellar Explorer.
       </p>
 
-      <div className="mt-4 divide-y divide-gray-100 overflow-hidden rounded-xl border border-gray-100 bg-white dark:divide-gray-800 dark:border-gray-800 dark:bg-gray-900">
+      <div className="mt-4 divide-y divide-white/5 overflow-hidden rounded-2xl glass">
         {isLoading && <Row muted>Loading recent transactions…</Row>}
         {error && <Row muted>Couldn’t reach Soroban RPC. Retrying…</Row>}
         {!isLoading && !error && items.length === 0 && (
@@ -56,13 +56,13 @@ export function ActivityFeed() {
             href={it.href}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-3 px-4 py-3 transition hover:bg-quest-50/50 dark:hover:bg-gray-800"
+            className="flex items-center gap-3 px-4 py-3 transition hover:bg-white/5"
           >
             <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-full text-sm ${TONE[it.kind]}`}>
               {ICON[it.kind]}
             </span>
-            <span className="min-w-0 flex-1 truncate text-sm text-gray-800 dark:text-gray-200">{it.label}</span>
-            <span className="shrink-0 font-mono text-xs text-gray-400">
+            <span className="min-w-0 flex-1 truncate text-sm text-slate-200">{it.label}</span>
+            <span className="shrink-0 font-mono text-xs text-slate-500">
               {it.txHash.slice(0, 6)}… ↗
             </span>
           </a>
@@ -73,5 +73,5 @@ export function ActivityFeed() {
 }
 
 function Row({ children, muted }: { children: React.ReactNode; muted?: boolean }) {
-  return <div className={`px-4 py-6 text-center text-sm ${muted ? 'text-gray-500' : ''}`}>{children}</div>;
+  return <div className={`px-4 py-6 text-center text-sm ${muted ? 'text-slate-500' : ''}`}>{children}</div>;
 }

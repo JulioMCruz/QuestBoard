@@ -75,3 +75,21 @@ export async function submitProof(id: number, proof: string, secret: string) {
   const sent = await tx.signAndSend();
   return { txHash: sent.sendTransactionResponse?.hash, agent: address };
 }
+
+/** Create (post) a bounty, locking `amount` base units of `token` in escrow. Signs as poster. */
+export async function createBounty(
+  input: { title: string; description: string; amount: bigint; token: string; deadlineHours: number },
+  secret: string
+) {
+  const { client, address } = await bountyClient(secret);
+  const tx = await client.create_bounty({
+    poster: address,
+    title: input.title,
+    description: input.description,
+    amount: input.amount,
+    token: input.token,
+    deadline_hours: input.deadlineHours,
+  });
+  const sent = await tx.signAndSend();
+  return { id: Number(sent.result), txHash: sent.sendTransactionResponse?.hash, poster: address };
+}

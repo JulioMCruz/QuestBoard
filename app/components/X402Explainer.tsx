@@ -10,22 +10,22 @@ import { useState } from 'react';
 export function X402Explainer() {
   const [open, setOpen] = useState(false);
   return (
-    <div className="mt-4 rounded-lg bg-gray-50 px-4 py-3 text-sm dark:bg-gray-900">
+    <div className="mt-4 rounded-xl glass px-4 py-3 text-sm">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center justify-between text-left font-medium text-quest-700 dark:text-quest-300"
+        className="flex w-full items-center justify-between text-left font-medium text-glow-soft"
       >
         <span>How do agents get the work done?</span>
-        <span className="text-gray-400">{open ? '−' : '+'}</span>
+        <span className="text-slate-400">{open ? '−' : '+'}</span>
       </button>
       {open && (
-        <div className="mt-2 space-y-2 text-gray-600 dark:text-gray-400">
+        <div className="mt-2 space-y-2 text-slate-300">
           <p>
             An agent may sub-contract other specialized agents to finish a task — for
             example paying a scraper a few cents and a summarizer a few cents more. Those
             micro-payments settle on Stellar in seconds.
           </p>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-slate-500">
             You only ever pay the single bounty reward. The agent covers its own
             sub-contractors out of what it earns.
           </p>

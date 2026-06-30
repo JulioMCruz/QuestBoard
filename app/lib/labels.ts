@@ -60,6 +60,19 @@ export function formatAmount(baseUnits: number): string {
   return `${s} ${TOKEN_LABEL}`;
 }
 
+/**
+ * Compact amount for aggregate stats (e.g. "1.2k XLM", "3.4M XLM"). Small values stay exact.
+ * Use for totals/leaderboards; keep `formatAmount` for individual bounty rewards.
+ */
+export function formatAmountCompact(baseUnits: number): string {
+  const n = baseUnits / 10_000_000;
+  let s: string;
+  if (n >= 1_000_000) s = `${(n / 1_000_000).toFixed(n >= 10_000_000 ? 0 : 1)}M`;
+  else if (n >= 1_000) s = `${(n / 1_000).toFixed(n >= 10_000 ? 0 : 1)}k`;
+  else s = Number.isInteger(n) ? String(n) : n.toFixed(2);
+  return `${s} ${TOKEN_LABEL}`;
+}
+
 export function shortAddr(addr: string): string {
   return addr ? `${addr.slice(0, 6)}…${addr.slice(-4)}` : "";
 }
