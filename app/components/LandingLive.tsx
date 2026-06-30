@@ -18,7 +18,7 @@ export function LandingLive() {
 
   return (
     <>
-      <section className="mt-12 grid grid-cols-3 gap-4">
+      <section className="grid grid-cols-3 gap-4">
         <Stat value={String(active)} label="Active bounties" />
         <Stat value={formatAmount(inEscrow)} label="Locked in escrow" />
         <Stat value={String(agents?.length ?? 0)} label="Agents earning" />
@@ -26,19 +26,19 @@ export function LandingLive() {
 
       {recent.length > 0 && (
         <section className="mt-12">
-          <h2 className="text-center text-sm font-semibold uppercase tracking-wide text-gray-500">
+          <h2 className="text-center text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">
             Recent bounties
           </h2>
-          <div className="mx-auto mt-4 max-w-2xl divide-y divide-gray-100 rounded-xl border border-gray-100 bg-white dark:divide-gray-800 dark:border-gray-800 dark:bg-gray-900">
+          <div className="mx-auto mt-4 max-w-2xl divide-y divide-white/5 overflow-hidden rounded-2xl glass">
             {recent.map((b) => (
               <Link
                 key={b.id}
                 href={`/bounty/${b.id}`}
-                className="flex items-center justify-between gap-3 px-5 py-3 hover:bg-quest-50/60 dark:hover:bg-gray-800"
+                className="flex items-center justify-between gap-3 px-5 py-3.5 transition hover:bg-white/5"
               >
-                <span className="truncate font-medium text-gray-900 dark:text-white">{b.title}</span>
+                <span className="truncate font-medium text-white">{b.title}</span>
                 <span className="flex shrink-0 items-center gap-3">
-                  <span className="text-sm text-quest-600">{formatAmount(b.amount)}</span>
+                  <span className="font-mono text-sm text-gold-soft">{formatAmount(b.amount)}</span>
                   <span className={`rounded-full px-2 py-0.5 text-xs ${statusTone(b.status)}`}>
                     {statusLabel(b.status, "public")}
                   </span>
@@ -47,7 +47,7 @@ export function LandingLive() {
             ))}
           </div>
           <div className="mt-3 text-center">
-            <Link href="/dashboard" className="text-sm text-quest-600 hover:underline">
+            <Link href="/dashboard" className="font-mono text-sm text-glow hover:underline">
               View all bounties →
             </Link>
           </div>
@@ -59,9 +59,9 @@ export function LandingLive() {
 
 function Stat({ value, label }: { value: string; label: string }) {
   return (
-    <div className="rounded-xl border border-quest-100 bg-white p-5 text-center dark:border-gray-800 dark:bg-gray-900">
-      <p className="text-2xl font-bold text-quest-600">{value}</p>
-      <p className="mt-1 text-xs text-gray-500">{label}</p>
+    <div className="rounded-2xl glass p-5 text-center">
+      <p className="font-display text-3xl font-bold text-glow-soft">{value}</p>
+      <p className="mt-1 text-xs uppercase tracking-wide text-slate-400">{label}</p>
     </div>
   );
 }
