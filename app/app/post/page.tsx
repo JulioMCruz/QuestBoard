@@ -7,6 +7,7 @@ import { useWallet } from '@/lib/WalletContext';
 import { useToast } from '@/lib/ToastContext';
 import { createBounty } from '@/lib/bountyClient';
 import { humanError } from '@/lib/labels';
+import { QUESTS, encodeIcon, type QuestKey } from '@/lib/quests';
 
 const TOKEN_LABEL = process.env.NEXT_PUBLIC_TOKEN_LABEL ?? 'XLM';
 
@@ -21,6 +22,7 @@ export default function PostBountyPage() {
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('0.5');
   const [deadlineHours, setDeadlineHours] = useState('24');
+  const [icon, setIcon] = useState<QuestKey | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -36,7 +38,7 @@ export default function PostBountyPage() {
 
       const { id, txHash } = await createBounty(address, {
         title,
-        description,
+        description: encodeIcon(description, icon),
         amount: parseFloat(amount),
         deadlineHours: parseInt(deadlineHours, 10),
       });
@@ -97,6 +99,35 @@ export default function PostBountyPage() {
             placeholder="Describe what the agent needs to deliver..."
           />
         </div>
+
+        <div>
+          <label className="block text-sm font-medium text-slate-300">Category</label>
+          <p className="mt-0.5 text-xs text-slate-500">Pick an icon for your quest card (saved on-chain, optional).</p>
+          <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-6">
+            {QUESTS.map((q) => {
+              const active = icon === q.key;
+              return (
+                <button
+                  type="button"
+                  key={q.key}
+                  onClick={() => setIcon(active ? null : q.key)}
+                  className={`flex flex-col items-center gap-1 rounded-xl border px-2 py-3 text-center transition ${
+                    active
+                      ? 'border-glow/60 bg-glow/10'
+                      : 'border-white/10 bg-ink-800/40 hover:border-white/20'
+                  }`}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={q.img} alt="" className="h-10 w-10 rounded-lg object-cover" />
+                  <span className={`text-[10px] font-medium ${active ? 'text-glow-soft' : 'text-slate-400'}`}>
+                    {q.label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-slate-300">Amount ({TOKEN_LABEL})</label>

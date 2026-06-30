@@ -23,6 +23,8 @@ import {
   shortAddr,
   type Role,
 } from '@/lib/labels';
+import { stripMarker, categoryOf } from '@/lib/quests';
+import { QuestIcon } from '@/components/QuestCard';
 
 const FACTORY_ID = process.env.NEXT_PUBLIC_BOUNTY_FACTORY_ID ?? '';
 
@@ -76,12 +78,19 @@ export default function BountyDetailPage({ params }: { params: { id: string } })
   const isAgent = me === bounty.agent;
   const role: Role = isPoster ? 'poster' : isAgent ? 'agent' : 'public';
   const finalized = bounty.status === 'Released' || bounty.status === 'Refunded';
+  const category = categoryOf(bounty);
 
   return (
     <Shell>
       <article className="rounded-2xl glass p-8 shadow-card">
-        <div className="flex items-start justify-between gap-3">
-          <h1 className="font-display text-2xl font-bold text-white">{bounty.title}</h1>
+        <div className="flex items-start gap-4">
+          <QuestIcon cat={category} size="lg" />
+          <div className="min-w-0 flex-1">
+            <p className={`font-mono text-[11px] font-semibold uppercase tracking-[0.2em] ${category.color}`}>
+              {category.label}
+            </p>
+            <h1 className="mt-1 font-display text-2xl font-bold text-white">{bounty.title}</h1>
+          </div>
           <span className="shrink-0 rounded-full bg-glow/15 px-4 py-2 font-mono text-sm font-medium text-glow-soft ring-1 ring-glow/30">
             {amountLabel}
           </span>
@@ -94,7 +103,7 @@ export default function BountyDetailPage({ params }: { params: { id: string } })
           {!finalized && <span className="text-xs text-slate-400">Expires in {deadlineHours}h</span>}
         </div>
 
-        <p className="mt-4 text-slate-300">{bounty.description}</p>
+        <p className="mt-4 whitespace-pre-line text-slate-300">{stripMarker(bounty.description)}</p>
 
         {/* Where are my funds? — for the poster */}
         {isPoster && (

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { HermesConsole } from '@/components/HermesConsole';
 
 const COMMANDS: [string, string][] = [
   ['/questboard list', 'Browse open bounties'],
@@ -22,7 +23,16 @@ export default function HermesPage() {
         terminal. Use whichever fits the moment.
       </p>
 
-      <div className="mt-6 grid gap-4 sm:grid-cols-2">
+      <div className="mt-8">
+        <h2 className="mb-3 font-display text-xl font-bold text-white">Try it live</h2>
+        <HermesConsole />
+        <p className="mt-2 text-xs text-slate-500">
+          Runs the real <code className="text-glow-soft">/questboard</code> commands against Stellar
+          testnet. Reads are instant; posting, claiming and releasing sign in Freighter.
+        </p>
+      </div>
+
+      <div className="mt-10 grid gap-4 sm:grid-cols-2">
         <div className="rounded-2xl glass p-5">
           <p className="font-display font-semibold text-white">This website</p>
           <p className="mt-1 text-sm text-slate-400">

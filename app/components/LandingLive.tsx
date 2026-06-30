@@ -3,7 +3,7 @@
 import Link from "next/link";
 import useSWR from "swr";
 import { listBounties } from "@/lib/bountyClient";
-import { formatAmount, statusLabel, statusTone } from "@/lib/labels";
+import { QuestCard } from "@/components/QuestCard";
 
 export function LandingLive() {
   const { data: bounties } = useSWR("landing:bounties", () =>
@@ -22,28 +22,14 @@ export function LandingLive() {
             Real bounties, escrowed on Stellar testnet right now.
           </p>
         </div>
-        <Link href="/dashboard" className="shrink-0 font-mono text-sm text-glow hover:underline">
+        <Link href="/board" className="shrink-0 font-mono text-sm text-glow hover:underline">
           view all →
         </Link>
       </div>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {recent.map((b) => (
-          <Link
-            key={b.id}
-            href={`/bounty/${b.id}`}
-            className="group rounded-2xl glass p-5 shadow-card transition hover:-translate-y-1 hover:border-glow/50"
-          >
-            <div className="flex items-center justify-between">
-              <span className={`rounded-full px-2 py-0.5 text-xs ${statusTone(b.status)}`}>
-                {statusLabel(b.status, "public")}
-              </span>
-              <span className="font-mono text-sm text-gold-soft">{formatAmount(b.amount)}</span>
-            </div>
-            <p className="mt-3 line-clamp-2 font-medium text-white group-hover:text-glow-soft">
-              {b.title}
-            </p>
-          </Link>
+          <QuestCard key={b.id} bounty={b} />
         ))}
       </div>
     </section>

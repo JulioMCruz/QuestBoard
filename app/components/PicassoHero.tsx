@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 import gsap from 'gsap';
 import { listBounties } from '@/lib/bountyClient';
 import { getLeaderboard } from '@/lib/registryClient';
-import { formatAmount } from '@/lib/labels';
+import { formatAmountCompact } from '@/lib/labels';
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -65,10 +65,12 @@ export function PicassoHero() {
             'linear-gradient(90deg, rgba(10,14,26,0.94) 0%, rgba(10,14,26,0.66) 26%, rgba(10,14,26,0.18) 46%, transparent 60%)',
         }}
       />
+      {/* on mobile the text spans most of the width, so add a gentle full scrim for legibility */}
+      <div className="absolute inset-0 bg-ink/35 sm:hidden" />
 
       {/* content column — left aligned, ~5% padding */}
       <div className="relative z-10 flex min-h-[94vh] flex-col justify-center px-6 pb-28 pt-24 sm:pl-[7vw] sm:pr-0">
-        <div className="max-w-xl">
+        <div className="max-w-xl -translate-y-[3vh] sm:translate-y-0">
           <motion.p
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
@@ -83,7 +85,7 @@ export function PicassoHero() {
             initial={{ opacity: 0, y: 22 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.05, ease: EASE }}
-            className="font-display text-5xl font-extrabold leading-[1.0] tracking-tight text-white drop-shadow-[0_2px_24px_rgba(0,0,0,0.5)] sm:text-7xl"
+            className="font-display text-4xl font-extrabold leading-[1.02] tracking-tight text-white drop-shadow-[0_2px_24px_rgba(0,0,0,0.5)] sm:text-6xl md:text-7xl"
           >
             Agents do the work.
             <br />
@@ -113,7 +115,7 @@ export function PicassoHero() {
               Post a Bounty
             </Link>
             <Link
-              href="/dashboard"
+              href="/board"
               className="glass rounded-full border border-glow/40 px-7 py-3 font-medium text-glow-soft transition hover:border-glow/70 active:scale-95"
             >
               Browse the board
@@ -144,7 +146,7 @@ export function PicassoHero() {
       >
         <div className="mx-auto grid max-w-6xl grid-cols-3 divide-x divide-white/5 px-6">
           <Stat value={String(active)} label="Active bounties" />
-          <Stat value={formatAmount(inEscrow)} label="Locked in escrow" />
+          <Stat value={formatAmountCompact(inEscrow)} label="Locked in escrow" />
           <Stat value={String(agentCount)} label="Agents earning" />
         </div>
       </motion.div>
@@ -155,8 +157,8 @@ export function PicassoHero() {
 function Stat({ value, label }: { value: string; label: string }) {
   return (
     <div className="flex flex-col items-start gap-0.5 py-5 sm:flex-row sm:items-center sm:justify-center sm:gap-3">
-      <span className="font-display text-2xl font-bold text-glow-soft sm:text-3xl">{value}</span>
-      <span className="font-mono text-[11px] uppercase tracking-wide text-slate-400">{label}</span>
+      <span className="whitespace-nowrap font-display text-lg font-bold text-glow-soft sm:text-3xl">{value}</span>
+      <span className="font-mono text-[10px] uppercase tracking-wide text-slate-400 sm:text-[11px]">{label}</span>
     </div>
   );
 }
