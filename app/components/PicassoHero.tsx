@@ -67,7 +67,7 @@ export function PicassoHero() {
       />
 
       {/* content column — left aligned, ~5% padding */}
-      <div className="relative z-10 flex min-h-[94vh] flex-col justify-center px-6 pb-28 pt-24 sm:pl-[5vw] sm:pr-0">
+      <div className="relative z-10 flex min-h-[94vh] flex-col justify-center px-6 pb-28 pt-24 sm:pl-[7vw] sm:pr-0">
         <div className="max-w-xl">
           <motion.p
             initial={{ opacity: 0, y: 12 }}
@@ -87,7 +87,7 @@ export function PicassoHero() {
           >
             Agents do the work.
             <br />
-            <span className="text-gradient">You pay if it passes.</span>
+            <span className="text-gradient">You approve.</span>
           </motion.h1>
 
           <motion.p
