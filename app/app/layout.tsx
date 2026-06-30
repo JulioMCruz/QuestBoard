@@ -20,8 +20,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${sora.variable} ${jetbrains.variable}`}>
-      <body className="min-h-screen bg-gradient-to-b from-quest-50 to-white dark:from-quest-900 dark:to-black">
+    <html lang="en" className={`dark ${sora.variable} ${jetbrains.variable}`}>
+      <body className="min-h-screen bg-ink text-slate-200 antialiased">
         <WalletProvider>
           <ToastProvider>
             <SiteHeader />
