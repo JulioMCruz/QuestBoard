@@ -22,7 +22,7 @@ export function BountyBoard() {
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {bounties.length === 0 && (
-        <p className="text-gray-500 col-span-full text-center py-12">
+        <p className="col-span-full py-12 text-center text-slate-500">
           No bounties yet. Be the first to post one.
         </p>
       )}
@@ -43,23 +43,21 @@ function BountyCard({ bounty }: { bounty: Bounty }) {
   return (
     <Link
       href={`/bounty/${bounty.id}`}
-      className="block rounded-xl border border-quest-100 bg-white p-5 shadow-sm hover:shadow-md transition dark:bg-gray-900"
+      className="group block rounded-2xl glass p-5 shadow-card transition hover:-translate-y-1 hover:border-glow/50"
     >
       <div className="flex items-start justify-between gap-2">
-        <h3 className="font-semibold text-quest-600">{bounty.title}</h3>
-        <span className="shrink-0 rounded-full bg-quest-100 px-3 py-1 text-xs font-medium text-quest-900 dark:bg-quest-900 dark:text-quest-100">
+        <h3 className="font-display font-semibold text-white group-hover:text-glow-soft">{bounty.title}</h3>
+        <span className="shrink-0 rounded-full bg-glow/15 px-3 py-1 font-mono text-xs font-medium text-glow-soft ring-1 ring-glow/30">
           {amount} {TOKEN_LABEL}
         </span>
       </div>
-      <p className="mt-2 text-sm text-gray-600 dark:text-gray-400 line-clamp-3">
-        {bounty.description}
-      </p>
-      <div className="mt-4 flex items-center justify-between text-xs text-gray-500">
+      <p className="mt-2 line-clamp-3 text-sm text-slate-400">{bounty.description}</p>
+      <div className="mt-4 flex items-center justify-between font-mono text-xs text-slate-500">
         <span>#{bounty.id}</span>
         <span>{deadlineHours}h left</span>
       </div>
       <div className="mt-2">
-        <span className="inline-block rounded bg-gray-100 px-2 py-1 text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+        <span className="inline-block rounded-full bg-white/5 px-2.5 py-1 text-xs text-slate-300">
           {statusLabel(bounty.status, 'public')}
         </span>
       </div>
@@ -70,33 +68,39 @@ function BountyCard({ bounty }: { bounty: Bounty }) {
 export function Leaderboard() {
   const { data, error, isLoading } = useSWR('leaderboard', () => getLeaderboard(10));
 
-  if (isLoading) return <p className="text-gray-500 text-center py-12">Loading agents…</p>;
+  if (isLoading) return <p className="py-12 text-center text-slate-500">Loading agents…</p>;
   if (error) return <ErrorBox message={(error as Error).message} />;
 
   const agents: AgentProfile[] = data ?? [];
   return (
     <div className="space-y-2">
       {agents.length === 0 && (
-        <p className="text-gray-500 text-center py-12">No agents registered yet.</p>
+        <p className="py-12 text-center text-slate-500">No agents registered yet.</p>
       )}
       {agents.map((a, i) => (
         <Link
           key={a.address}
           href={`/agents/${a.address}`}
-          className="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-4 transition hover:shadow-sm dark:border-gray-800 dark:bg-gray-900"
+          className="flex items-center justify-between rounded-2xl glass p-4 transition hover:-translate-y-0.5 hover:border-glow/50"
         >
           <div className="flex items-center gap-3">
-            <span className="text-xl font-bold text-quest-500">#{i + 1}</span>
+            <span
+              className={`font-display text-xl font-bold ${
+                i === 0 ? 'text-gold' : i < 3 ? 'text-glow-soft' : 'text-slate-500'
+              }`}
+            >
+              #{i + 1}
+            </span>
             <div>
-              <p className="font-medium text-gray-900 dark:text-white">{a.name}</p>
-              <p className="text-xs text-gray-500 font-mono">{a.address.slice(0, 12)}…</p>
+              <p className="font-medium text-white">{a.name}</p>
+              <p className="font-mono text-xs text-slate-500">{a.address.slice(0, 12)}…</p>
             </div>
           </div>
           <div className="text-right">
-            <p className="font-semibold text-quest-600">
+            <p className="font-mono font-semibold text-gold-soft">
               {(a.score / 10_000_000).toFixed(2)} {TOKEN_LABEL}
             </p>
-            <p className="text-xs text-gray-500">{a.bountiesDone} bounties</p>
+            <p className="text-xs text-slate-400">{a.bountiesDone} bounties</p>
           </div>
         </Link>
       ))}
@@ -108,10 +112,7 @@ function SkeletonGrid() {
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {[0, 1, 2].map((i) => (
-        <div
-          key={i}
-          className="h-36 animate-pulse rounded-xl border border-quest-100 bg-gray-100 dark:bg-gray-800"
-        />
+        <div key={i} className="h-36 animate-pulse rounded-2xl glass" />
       ))}
     </div>
   );
@@ -119,7 +120,7 @@ function SkeletonGrid() {
 
 function ErrorBox({ message }: { message: string }) {
   return (
-    <div className="col-span-full rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:bg-red-950 dark:text-red-300">
+    <div className="col-span-full rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300">
       Couldn’t load from the network: {message}
     </div>
   );

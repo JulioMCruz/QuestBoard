@@ -31,53 +31,53 @@ export default function ConnectPage() {
 
   return (
     <main className="mx-auto max-w-lg px-6 py-12">
-      <Link href="/" className="text-sm text-quest-600 hover:underline">← Back</Link>
+      <Link href="/" className="text-sm text-glow hover:underline">← Back</Link>
 
-      <h1 className="mt-6 text-2xl font-bold text-gray-900 dark:text-white">
+      <h1 className="mt-6 font-display text-2xl font-bold text-white">
         Connect your Stellar account
       </h1>
-      <p className="mt-3 text-gray-600 dark:text-gray-400">
-        QuestBoard uses <strong>Freighter</strong>, the Stellar team’s free browser
+      <p className="mt-3 text-slate-400">
+        QuestBoard uses <strong className="text-slate-200">Freighter</strong>, the Stellar team’s free browser
         extension, to identify you and sign transactions. Think of it as a secure
         account that holds your USDC on Stellar.
       </p>
 
       {hasExtension === false && (
-        <div className="mt-6 rounded-xl border border-quest-100 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
-          <p className="font-semibold text-gray-900 dark:text-white">Freighter — Stellar Wallet</p>
-          <p className="mt-1 text-sm text-gray-500">
+        <div className="mt-6 rounded-2xl glass p-5">
+          <p className="font-display font-semibold text-white">Freighter — Stellar Wallet</p>
+          <p className="mt-1 text-sm text-slate-500">
             Free, from the Stellar Development Foundation. Works in Chrome &amp; Brave.
           </p>
           <a
             href="https://www.freighter.app/"
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-4 inline-block rounded-xl bg-quest-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-quest-500"
+            className="mt-4 inline-block rounded-full bg-gold px-5 py-2.5 text-sm font-semibold text-ink-950 shadow-glow-gold transition hover:bg-gold-soft"
           >
             Install Freighter →
           </a>
-          <p className="mt-4 text-sm text-gray-500">
+          <p className="mt-4 text-sm text-slate-500">
             Already installed?{' '}
-            <button onClick={connect} className="text-quest-600 hover:underline">Connect now</button>
+            <button onClick={connect} className="text-glow hover:underline">Connect now</button>
           </p>
         </div>
       )}
 
       {hasExtension !== false && (
-        <div className="mt-6 rounded-xl border border-quest-100 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
-          <p className="font-semibold text-green-700 dark:text-green-400">Freighter detected</p>
-          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+        <div className="mt-6 rounded-2xl glass p-5">
+          <p className="font-display font-semibold text-emerald-300">Freighter detected</p>
+          <p className="mt-1 text-sm text-slate-400">
             Freighter will ask you to confirm sharing your address with QuestBoard.
           </p>
           <button
             onClick={connect}
             disabled={connecting}
-            className="mt-4 w-full rounded-xl bg-quest-600 px-5 py-3 font-medium text-white shadow hover:bg-quest-500 disabled:opacity-50"
+            className="mt-4 w-full rounded-full bg-gold px-5 py-3 font-semibold text-ink-950 shadow-glow-gold transition hover:bg-gold-soft disabled:opacity-50"
           >
             {connecting ? 'Waiting for Freighter…' : 'Connect Freighter'}
           </button>
           {isTestnet && (
-            <p className="mt-3 text-xs text-amber-700 dark:text-amber-300">
+            <p className="mt-3 text-xs text-gold-soft">
               You’re on <strong>Testnet</strong>. Get free test USDC at{' '}
               <a href="https://faucet.circle.com" target="_blank" rel="noopener noreferrer" className="underline">
                 faucet.circle.com
@@ -87,11 +87,11 @@ export default function ConnectPage() {
         </div>
       )}
 
-      {error && <p className="mt-4 text-sm text-red-500">{humanError(error)}</p>}
+      {error && <p className="mt-4 text-sm text-red-400">{humanError(error)}</p>}
 
-      <div className="mt-8 rounded-xl bg-gray-50 p-5 text-sm dark:bg-gray-900">
-        <p className="font-medium text-gray-700 dark:text-gray-300">What QuestBoard can and cannot do</p>
-        <ul className="mt-2 space-y-1 text-gray-600 dark:text-gray-400">
+      <div className="mt-8 rounded-2xl glass p-5 text-sm">
+        <p className="font-medium text-slate-200">What QuestBoard can and cannot do</p>
+        <ul className="mt-2 space-y-1 text-slate-400">
           <li>✓ See your public wallet address</li>
           <li>✓ Ask you to sign transactions (you approve each one)</li>
           <li>✗ Access your private key</li>

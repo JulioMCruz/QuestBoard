@@ -24,7 +24,7 @@ export default function DashboardPage() {
         <GetStartedCards />
         <ActivityFeed />
         <div className="mt-8 text-center">
-          <button onClick={connect} className="text-sm text-quest-600 hover:underline">
+          <button onClick={connect} className="text-sm text-glow hover:underline">
             Connect your wallet to post or claim →
           </button>
         </div>
@@ -67,8 +67,8 @@ function PosterPanel({ posted }: { posted: Bounty[] }) {
   return (
     <section className="mt-8">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">My posted bounties</h2>
-        <Link href="/post" className="rounded-xl bg-quest-600 px-4 py-2 text-sm font-medium text-white hover:bg-quest-500">
+        <h2 className="font-display text-xl font-bold text-white">My posted bounties</h2>
+        <Link href="/post" className="rounded-full bg-gold px-4 py-2 text-sm font-semibold text-ink-950 shadow-glow-gold transition hover:bg-gold-soft">
           Post a new bounty +
         </Link>
       </div>
@@ -77,7 +77,7 @@ function PosterPanel({ posted }: { posted: Bounty[] }) {
           <BountyRow key={b.id} bounty={b} role="poster" />
         ))}
       </div>
-      <div className="mt-4 grid grid-cols-3 gap-3 rounded-xl border border-gray-100 bg-white p-4 text-center text-sm dark:border-gray-800 dark:bg-gray-900">
+      <div className="mt-4 grid grid-cols-3 gap-3 rounded-2xl glass p-4 text-center text-sm">
         <Summary label="Total posted" value={formatAmount(totalPosted)} />
         <Summary label="Paid out" value={formatAmount(paidOut)} />
         <Summary label="In escrow" value={formatAmount(inEscrow)} />
@@ -102,22 +102,22 @@ function AgentPanel({
 
   return (
     <section className="mt-10">
-      <h2 className="text-xl font-semibold text-gray-900 dark:text-white">My agent activity</h2>
-      <div className="mt-3 flex flex-wrap items-center gap-4 rounded-xl border border-gray-100 bg-white p-4 text-sm dark:border-gray-800 dark:bg-gray-900">
-        <span>Reputation: <strong>{profile?.score ?? 0}</strong></span>
-        <span>Bounties completed: <strong>{profile?.bountiesDone ?? 0}</strong></span>
-        <span>Earned: <strong>{formatAmount(earned)}</strong></span>
+      <h2 className="font-display text-xl font-bold text-white">My agent activity</h2>
+      <div className="mt-3 flex flex-wrap items-center gap-4 rounded-2xl glass p-4 text-sm text-slate-300">
+        <span>Reputation: <strong className="text-white">{profile?.score ?? 0}</strong></span>
+        <span>Bounties completed: <strong className="text-white">{profile?.bountiesDone ?? 0}</strong></span>
+        <span>Earned: <strong className="text-gold-soft">{formatAmount(earned)}</strong></span>
         {!profile && (
-          <span className="text-amber-700 dark:text-amber-300">
+          <span className="text-gold-soft">
             Not registered yet — register your agent to appear on the leaderboard.
           </span>
         )}
-        <Link href={`/agents`} className="ml-auto text-quest-600 hover:underline">View leaderboard →</Link>
+        <Link href={`/agents`} className="ml-auto text-glow hover:underline">View leaderboard →</Link>
       </div>
 
       {active.length > 0 && (
         <>
-          <h3 className="mt-6 text-sm font-semibold uppercase tracking-wide text-gray-500">Active claims</h3>
+          <h3 className="mt-6 font-mono text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Active claims</h3>
           <div className="mt-3 space-y-3">
             {active.map((b) => (
               <BountyRow key={b.id} bounty={b} role="agent" />
@@ -126,9 +126,9 @@ function AgentPanel({
         </>
       )}
 
-      <h3 className="mt-6 text-sm font-semibold uppercase tracking-wide text-gray-500">Available to claim</h3>
+      <h3 className="mt-6 font-mono text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Available to claim</h3>
       <div className="mt-3 space-y-3">
-        {available.length === 0 && <p className="text-sm text-gray-500">No open bounties right now.</p>}
+        {available.length === 0 && <p className="text-sm text-slate-500">No open bounties right now.</p>}
         {available.map((b) => (
           <BountyRow key={b.id} bounty={b} role="agent" />
         ))}
@@ -143,16 +143,16 @@ function BountyRow({ bounty, role }: { bounty: Bounty; role: 'poster' | 'agent' 
   return (
     <Link
       href={`/bounty/${bounty.id}`}
-      className="flex items-center justify-between gap-3 rounded-xl border border-quest-100 bg-white p-4 hover:shadow-sm dark:border-gray-800 dark:bg-gray-900"
+      className="flex items-center justify-between gap-3 rounded-2xl glass p-4 transition hover:-translate-y-0.5 hover:border-glow/50"
     >
       <div className="min-w-0">
-        <p className="truncate font-medium text-gray-900 dark:text-white">
-          <span className="text-gray-400">#{bounty.id}</span> {bounty.title}
+        <p className="truncate font-medium text-white">
+          <span className="font-mono text-slate-500">#{bounty.id}</span> {bounty.title}
         </p>
-        <p className="mt-0.5 text-xs text-gray-500">{statusLabel(bounty.status, role)}</p>
+        <p className="mt-0.5 text-xs text-slate-400">{statusLabel(bounty.status, role)}</p>
       </div>
       <span className="flex shrink-0 items-center gap-3">
-        <span className="text-sm text-quest-600">{formatAmount(bounty.amount)}</span>
+        <span className="font-mono text-sm text-gold-soft">{formatAmount(bounty.amount)}</span>
         <span className={`rounded-full px-2 py-0.5 text-xs ${statusTone(bounty.status)}`}>{bounty.status}</span>
       </span>
     </Link>
@@ -174,10 +174,10 @@ function GetStartedCards() {
 
 function Card({ title, children, cta, href }: { title: string; children: React.ReactNode; cta: string; href: string }) {
   return (
-    <div className="rounded-xl border border-quest-100 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
-      <h3 className="font-semibold text-gray-900 dark:text-white">{title}</h3>
-      <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{children}</p>
-      <Link href={href} className="mt-4 inline-block rounded-xl bg-quest-600 px-4 py-2 text-sm font-medium text-white hover:bg-quest-500">
+    <div className="rounded-2xl glass p-6">
+      <h3 className="font-display font-semibold text-white">{title}</h3>
+      <p className="mt-1 text-sm text-slate-400">{children}</p>
+      <Link href={href} className="mt-4 inline-block rounded-full bg-gold px-4 py-2 text-sm font-semibold text-ink-950 shadow-glow-gold transition hover:bg-gold-soft">
         {cta}
       </Link>
     </div>
@@ -188,10 +188,10 @@ function ActivityPreview({ bounties, loading }: { bounties: Bounty[]; loading: b
   const recent = [...bounties].slice(0, 5);
   return (
     <section className="mt-10">
-      <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">Recent activity on QuestBoard</h3>
+      <h3 className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Recent activity on QuestBoard</h3>
       <div className="mt-3 space-y-2">
-        {loading && <p className="text-sm text-gray-500">Loading…</p>}
-        {!loading && recent.length === 0 && <p className="text-sm text-gray-500">No bounties yet.</p>}
+        {loading && <p className="text-sm text-slate-500">Loading…</p>}
+        {!loading && recent.length === 0 && <p className="text-sm text-slate-500">No bounties yet.</p>}
         {recent.map((b) => (
           <BountyRow key={b.id} bounty={b} role="agent" />
         ))}
@@ -203,17 +203,17 @@ function ActivityPreview({ bounties, loading }: { bounties: Bounty[]; loading: b
 function Summary({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="font-semibold text-quest-600">{value}</p>
-      <p className="text-xs text-gray-500">{label}</p>
+      <p className="font-display font-bold text-glow-soft">{value}</p>
+      <p className="text-xs text-slate-400">{label}</p>
     </div>
   );
 }
 
 function Shell({ heading, children }: { heading: string; children: React.ReactNode }) {
   return (
-    <main className="mx-auto max-w-4xl px-6 py-10">
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{heading}</h1>
-      {children}
+    <main className="mx-auto max-w-4xl px-6 py-12">
+      <h1 className="font-display text-3xl font-bold text-white">{heading}</h1>
+      <div className="mt-6">{children}</div>
     </main>
   );
 }
